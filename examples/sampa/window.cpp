@@ -33,7 +33,7 @@ void Window::onCreate() {
                                  {.source = assetsPath + "depth.frag",
                                   .stage = abcg::ShaderStage::Fragment}});
 
-  m_model.loadObj(assetsPath + "Car.obj");
+  m_model.loadObj(assetsPath + "Dodge_Charger_Low.obj");
   m_model.setupVAO(m_program);
 
   m_trianglesToDraw = m_model.getNumTriangles();
