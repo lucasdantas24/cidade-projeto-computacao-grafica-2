@@ -46,6 +46,7 @@ private:
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
 
+  bool isPositionValid(const std::vector<glm::vec3>& positions, const glm::vec3& newPosition, float radius);
   std::vector<glm::vec3> generateRandomBuildingPositions(int numBuildings);
   void loadModelFromFile(std::string_view path);
 };

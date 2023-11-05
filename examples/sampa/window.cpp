@@ -47,21 +47,34 @@ void Window::onEvent(SDL_Event const &event) {
   }
 }
 
-std::vector<glm::vec3>
-Window::generateRandomBuildingPositions(int numBuildings) {
+std::vector<glm::vec3> Window::generateRandomBuildingPositions(int numBuildings) {
   std::vector<glm::vec3> positions;
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_real_distribution<float> disX(-0.8f, 0.8f);
-  std::uniform_real_distribution<float> disZ(-0.8f, 0.2f);
+  std::uniform_real_distribution<float> disX(-4.5f, -0.2f);
+  std::uniform_real_distribution<float> disZ(-4.5f, -0.2f);
 
   for (int i = 0; i < numBuildings; ++i) {
-    float posX = disX(gen);
-    float posZ = disZ(gen);
-    positions.emplace_back(glm::vec3(posX, 0.0f, posZ));
+    glm::vec3 newPos;
+    do {
+      float posX = disX(gen);
+      float posZ = disZ(gen);
+      newPos = glm::vec3(posX, 0.0f, posZ);
+    } while (!isPositionValid(positions, newPos, 0.25f));
+    
+    positions.emplace_back(newPos);
   }
 
   return positions;
+}
+
+bool Window::isPositionValid(const std::vector<glm::vec3>& positions, const glm::vec3& newPosition, float radius) {
+  for (const auto& position : positions) {
+    if (glm::distance(newPosition, position) < 2 * radius) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void Window::onCreate() {
@@ -86,11 +99,11 @@ void Window::onCreate() {
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
-  num_building = 10;
+  num_building = 30;
   // create vector
   building_positions = generateRandomBuildingPositions(num_building);
   // Load model
-  loadModelFromFile(assetsPath + "predio.obj");
+  loadModelFromFile(assetsPath + "P44.obj");
 
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
@@ -200,10 +213,10 @@ void Window::onPaint() {
   for (int i = 0; i < num_building; ++i) {
     glm::mat4 model{1.0f};
     model = glm::translate(model, building_positions.at(i));
-    model = glm::scale(model, glm::vec3(0.1f));
+    model = glm::scale(model, glm::vec3(0.025f));
 
     abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-    abcg::glUniform4f(m_colorLocation, 1.0f, 0.25f, 0.25f, 1.0f);
+    abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
     abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                          nullptr);
   }
