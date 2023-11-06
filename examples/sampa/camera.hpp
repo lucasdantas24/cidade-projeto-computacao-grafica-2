@@ -21,7 +21,7 @@ private:
   glm::vec3 m_at{0.0f, 1.25f, 0.0f}; // Look-at point
   glm::vec3 m_up{0.0f, 1.0f, 0.0f};  // "up" direction
 
-  // Matrix to change from world space to camera space
+  // Matrix to change from world space to camera spaces
   glm::mat4 m_viewMatrix;
 
   // Matrix to change from camera space to clip space
