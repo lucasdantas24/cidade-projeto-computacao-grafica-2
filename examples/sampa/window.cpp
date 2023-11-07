@@ -94,6 +94,8 @@ void Window::onCreate() {
 
   m_ground.create(m_program);
 
+  m_predio.loadObj(assetsPath + "box.obj");
+  m_predio.setupVAO(m_program);
   // Get location of uniform variables
   m_viewMatrixLocation = abcg::glGetUniformLocation(m_program, "viewMatrix");
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
@@ -210,16 +212,25 @@ void Window::onPaint() {
 
   abcg::glBindVertexArray(m_VAO);
 
-  for (int i = 0; i < num_building; ++i) {
-    glm::mat4 model{1.0f};
-    model = glm::translate(model, building_positions.at(i));
-    model = glm::scale(model, glm::vec3(0.025f));
+  auto const modelMatrixLoc{
+      abcg::glGetUniformLocation(m_program, "modelMatrix")};
 
-    abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-    abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-    abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-                         nullptr);
-  }
+  glm::mat4 modelMatrix{1.0f};
+  modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.6f, 0.0f));
+  modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f));
+  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
+
+  m_predio.render();
+  // for (int i = 0; i < num_building; ++i) {
+  //   glm::mat4 model{1.0f};
+  //   model = glm::translate(model, building_positions.at(i));
+  //   model = glm::scale(model, glm::vec3(0.025f));
+
+  //   abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
+  //   abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+  //   abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
+  //                        nullptr);
+  // }
   // // Draw white bunny
   // glm::mat4 model{1.0f};
   // model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 0.0f));

@@ -5,12 +5,13 @@
 
 #include "camera.hpp"
 #include "ground.hpp"
+#include "predio.hpp"
 
-struct Vertex {
-  glm::vec3 position;
+// struct Vertex {
+//   glm::vec3 position;
 
-  friend bool operator==(Vertex const &, Vertex const &) = default;
-};
+//   friend bool operator==(Vertex const &, Vertex const &) = default;
+// };
 
 class Window : public abcg::OpenGLWindow {
 protected:
@@ -41,7 +42,7 @@ private:
   float m_panSpeed{};
   int num_building;
   Ground m_ground;
-
+  Predio m_predio;
   std::vector<glm::vec3> building_positions;
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
