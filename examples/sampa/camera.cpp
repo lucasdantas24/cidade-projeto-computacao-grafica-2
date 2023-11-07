@@ -48,3 +48,14 @@ void Camera::pan(float speed) {
 
   computeViewMatrix();
 }
+
+void Camera::tilt(float speed) {
+  glm::vec3 viewDirection = glm::normalize(m_at - m_eye);
+  glm::vec3 right = glm::normalize(glm::cross(viewDirection, m_up));
+
+  // Move camera up and down
+  m_eye += m_up * speed;
+  m_at += m_up * speed;
+
+  computeViewMatrix();
+}

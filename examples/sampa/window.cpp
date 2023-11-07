@@ -10,13 +10,16 @@ template <> struct std::hash<Vertex> {
     return h1;
   }
 };
-
 void Window::onEvent(SDL_Event const &event) {
   if (event.type == SDL_KEYDOWN) {
-    if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w)
+    if (event.key.keysym.sym == SDLK_w)
       m_dollySpeed = 1.0f;
-    if (event.key.keysym.sym == SDLK_DOWN || event.key.keysym.sym == SDLK_s)
+    if (event.key.keysym.sym == SDLK_s)
       m_dollySpeed = -1.0f;
+    if (event.key.keysym.sym == SDLK_UP)
+      m_tiltSpeed = 1.0f;
+    if (event.key.keysym.sym == SDLK_DOWN)
+      m_tiltSpeed = -1.0f;
     if (event.key.keysym.sym == SDLK_LEFT || event.key.keysym.sym == SDLK_a)
       m_panSpeed = -1.0f;
     if (event.key.keysym.sym == SDLK_RIGHT || event.key.keysym.sym == SDLK_d)
@@ -27,12 +30,14 @@ void Window::onEvent(SDL_Event const &event) {
       m_truckSpeed = 1.0f;
   }
   if (event.type == SDL_KEYUP) {
-    if ((event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w) &&
-        m_dollySpeed > 0)
+    if ((event.key.keysym.sym == SDLK_w) && m_dollySpeed > 0)
       m_dollySpeed = 0.0f;
-    if ((event.key.keysym.sym == SDLK_DOWN || event.key.keysym.sym == SDLK_s) &&
-        m_dollySpeed < 0)
+    if ((event.key.keysym.sym == SDLK_s) && m_dollySpeed < 0)
       m_dollySpeed = 0.0f;
+    if ((event.key.keysym.sym == SDLK_UP) && m_tiltSpeed > 0)
+      m_tiltSpeed = 0.0f;
+    if ((event.key.keysym.sym == SDLK_DOWN) && m_tiltSpeed < 0)
+      m_tiltSpeed = 0.0f;
     if ((event.key.keysym.sym == SDLK_LEFT || event.key.keysym.sym == SDLK_a) &&
         m_panSpeed < 0)
       m_panSpeed = 0.0f;
@@ -47,7 +52,24 @@ void Window::onEvent(SDL_Event const &event) {
   }
 }
 
-std::vector<glm::vec3> Window::generateRandomBuildingPositions(int numBuildings) {
+std::vector<int> Window::gerarAndaresPorPredio(int num_building) {
+  std::vector<int> num_andares_por_predio;
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(
+      1, 5); // Ajuste o intervalo conforme necessário
+
+  for (int j = 0; j < num_building; j++) {
+    int num_andar =
+        dis(gen); // Gera um número aleatório de andares para cada prédio
+    num_andares_por_predio.push_back(num_andar);
+  }
+
+  return num_andares_por_predio;
+}
+
+std::vector<glm::vec3>
+Window::generateRandomBuildingPositions(int numBuildings) {
   std::vector<glm::vec3> positions;
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -61,15 +83,16 @@ std::vector<glm::vec3> Window::generateRandomBuildingPositions(int numBuildings)
       float posZ = disZ(gen);
       newPos = glm::vec3(posX, 0.0f, posZ);
     } while (!isPositionValid(positions, newPos, 0.25f));
-    
+
     positions.emplace_back(newPos);
   }
 
   return positions;
 }
 
-bool Window::isPositionValid(const std::vector<glm::vec3>& positions, const glm::vec3& newPosition, float radius) {
-  for (const auto& position : positions) {
+bool Window::isPositionValid(const std::vector<glm::vec3> &positions,
+                             const glm::vec3 &newPosition, float radius) {
+  for (const auto &position : positions) {
     if (glm::distance(newPosition, position) < 2 * radius) {
       return false;
     }
@@ -101,9 +124,10 @@ void Window::onCreate() {
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
-  num_building = 30;
+  num_building = 10;
   // create vector
   building_positions = generateRandomBuildingPositions(num_building);
+  num_andares_por_predio = gerarAndaresPorPredio(num_building);
   // Load model
   loadModelFromFile(assetsPath + "P44.obj");
 
@@ -194,6 +218,31 @@ void Window::loadModelFromFile(std::string_view path) {
     }
   }
 }
+float Window::calcularValorY(int i) { return 0.6f * (i + 1); }
+
+void Window::fazerJanela(glm::vec3 posicao_predio, GLuint modelMatrixLoc) {
+
+  // float x_predio = posicao_predio.x;
+  // float y_predio = posicao_predio.y;
+  // float z_predio = posicao_predio.z;
+
+  // float x_janela = x_predio - 0.5f;
+  // float y_janela = y_predio / 3.0f;
+  // float z_janela = z_predio;
+
+  // // Posições relativas das 4 janelas
+  // glm::vec3 posicao_janela_1{x_janela, y_janela, z_janela};
+  // glm::vec3 posicao_janela_2{x_janela, y_janela + 0.2f, z_janela};
+  // glm::vec3 posicao_janela_3{x_janela + 0.2f, y_janela, z_janela};
+  // glm::vec3 posicao_janela_4{x_janela + 0.2f, y_janela + 0.2f, z_janela};
+
+  // glm::mat4 modelMatrix{1.0f};
+  // modelMatrix = glm::translate(modelMatrix, posicao_janela_1);
+  // modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
+  // abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
+
+  // m_predio.render();
+}
 
 void Window::onPaint() {
   // Clear color buffer and depth buffer
@@ -215,18 +264,29 @@ void Window::onPaint() {
   auto const modelMatrixLoc{
       abcg::glGetUniformLocation(m_program, "modelMatrix")};
 
-  glm::mat4 modelMatrix{1.0f};
-  modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.6f, 0.0f));
-  modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f));
-  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
+  for (int j = 0; j < num_building; j++) {
+    for (int i = 0; i < num_andares_por_predio.at(j); i++) {
+      glm::mat4 modelMatrix{1.0f};
+      glm::vec3 posicao_predio =
+          glm::vec3(building_positions.at(j).x, calcularValorY(i),
+                    building_positions.at(j).z);
+      modelMatrix = glm::translate(modelMatrix, posicao_predio);
+      modelMatrix = glm::scale(modelMatrix, glm::vec3(0.6f));
+      abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
 
-  m_predio.render();
+      fazerJanela(posicao_predio, modelMatrixLoc);
+
+      m_predio.render();
+    }
+  }
+
   // for (int i = 0; i < num_building; ++i) {
   //   glm::mat4 model{1.0f};
   //   model = glm::translate(model, building_positions.at(i));
   //   model = glm::scale(model, glm::vec3(0.025f));
 
-  //   abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
+  //   abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
+  //   &model[0][0]);
   //   abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
   //   abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
   //                        nullptr);
@@ -298,4 +358,5 @@ void Window::onUpdate() {
   m_camera.dolly(m_dollySpeed * deltaTime);
   m_camera.truck(m_truckSpeed * deltaTime);
   m_camera.pan(m_panSpeed * deltaTime);
+  m_camera.tilt(m_tiltSpeed * deltaTime);
 }
