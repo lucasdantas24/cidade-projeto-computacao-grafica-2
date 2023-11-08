@@ -52,29 +52,51 @@ void Window::onEvent(SDL_Event const &event) {
   }
 }
 
-std::vector<int> Window::gerarAndaresPorPredio(int num_building) {
+std::vector<int> Window::gerarAndaresPorPredio(int num_building, int seed) {
   std::vector<int> num_andares_por_predio;
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_int_distribution<> dis(
-      1, 5); // Ajuste o intervalo conforme necessário
 
-  for (int j = 0; j < num_building; j++) {
-    int num_andar =
-        dis(gen); // Gera um número aleatório de andares para cada prédio
-    num_andares_por_predio.push_back(num_andar);
+  {
+    std::mt19937 gen(seed); // Use a semente fixa para inicializar o gerador de
+                            // números pseudo-aleatórios
+    std::uniform_int_distribution<> dis(
+        1, 5); // Ajuste o intervalo conforme necessário
+
+    for (int j = 0; j < num_building; j++) {
+      int num_andar =
+          dis(gen); // Gera um número aleatório de andares para cada prédio
+      num_andares_por_predio.push_back(num_andar);
+    }
   }
 
   return num_andares_por_predio;
 }
 
-std::vector<glm::vec3>
-Window::generateRandomBuildingPositions(int numBuildings) {
+std::vector<float> Window::gerarLarguraProfundidadeAleatorio(int num_building,
+                                                             int seed) {
+  std::vector<float> largura_profundidade;
+
+  {
+    std::mt19937 gen(seed); // Use a semente fixa para inicializar o gerador de
+                            // números pseudo-aleatórios
+    std::uniform_real_distribution<float> dis(
+        0.4f, 0.8f); // Ajuste o intervalo conforme necessário
+
+    for (int j = 0; j < num_building; j++) {
+      float num =
+          dis(gen); // Gera um número aleatório de andares para cada prédio
+      largura_profundidade.push_back(num);
+    }
+  }
+
+  return largura_profundidade;
+}
+
+std::vector<glm::vec3> Window::generateRandomBuildingPositions(int numBuildings,
+                                                               int seed) {
   std::vector<glm::vec3> positions;
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_real_distribution<float> disX(-4.5f, -0.2f);
-  std::uniform_real_distribution<float> disZ(-4.5f, -0.2f);
+  std::mt19937 gen(seed);
+  std::uniform_real_distribution<float> disX(-4.25f, -0.75f);
+  std::uniform_real_distribution<float> disZ(-4.25f, -0.75f);
 
   for (int i = 0; i < numBuildings; ++i) {
     glm::vec3 newPos;
@@ -124,10 +146,12 @@ void Window::onCreate() {
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
-  num_building = 10;
+  num_building = 15;
   // create vector
-  building_positions = generateRandomBuildingPositions(num_building);
-  num_andares_por_predio = gerarAndaresPorPredio(num_building);
+  building_positions = generateRandomBuildingPositions(num_building, 10);
+  num_andares_por_predio = gerarAndaresPorPredio(num_building, 10);
+  num_largura = gerarLarguraProfundidadeAleatorio(num_building, 10);
+  num_profundidade = gerarLarguraProfundidadeAleatorio(num_building, 4);
   // Load model
   loadModelFromFile(assetsPath + "P44.obj");
 
@@ -271,7 +295,12 @@ void Window::onPaint() {
           glm::vec3(building_positions.at(j).x, calcularValorY(i),
                     building_positions.at(j).z);
       modelMatrix = glm::translate(modelMatrix, posicao_predio);
-      modelMatrix = glm::scale(modelMatrix, glm::vec3(0.6f));
+      modelMatrix = glm::scale(
+          modelMatrix,
+          glm::vec3(num_largura.at(j), 1.0f,
+                    num_profundidade.at(j))); // Ajuste os valores de escala
+
+      abcg::glUniform4f(m_colorLocation, 5.0f, 1.0f, 1.0f, 1.0f);
       abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
 
       fazerJanela(posicao_predio, modelMatrixLoc);

@@ -48,6 +48,8 @@ private:
   Predio m_predio;
   std::vector<glm::vec3> building_positions;
   std::vector<int> num_andares_por_predio;
+  std::vector<float> num_largura;
+  std::vector<float> num_profundidade;
   struct PredioJanela {
     glm::vec3 m_position{};
     glm::vec3 m_rotationAxis{};
@@ -60,8 +62,11 @@ private:
 
   bool isPositionValid(const std::vector<glm::vec3> &positions,
                        const glm::vec3 &newPosition, float radius);
-  std::vector<glm::vec3> generateRandomBuildingPositions(int numBuildings);
-  std::vector<int> gerarAndaresPorPredio(int num_building);
+  std::vector<glm::vec3> generateRandomBuildingPositions(int numBuildings,
+                                                         int seed);
+  std::vector<int> gerarAndaresPorPredio(int num_building, int seed);
+  std::vector<float> gerarLarguraProfundidadeAleatorio(int num_building,
+                                                       int seed);
   void loadModelFromFile(std::string_view path);
 };
 
