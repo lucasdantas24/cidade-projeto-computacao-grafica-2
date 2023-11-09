@@ -6,7 +6,7 @@
 #include "camera.hpp"
 #include "ground.hpp"
 #include "predio.hpp"
-
+#include <chrono>
 // struct Vertex {
 //   glm::vec3 position;
 
@@ -50,6 +50,8 @@ private:
   std::vector<int> num_andares_por_predio;
   std::vector<float> num_largura;
   std::vector<float> num_profundidade;
+
+  std::vector<glm::vec4> cores_aleatorias;
   struct PredioJanela {
     glm::vec3 m_position{};
     glm::vec3 m_rotationAxis{};
@@ -59,14 +61,19 @@ private:
 
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
-
+  int m_seed;
   bool isPositionValid(const std::vector<glm::vec3> &positions,
                        const glm::vec3 &newPosition, float radius);
   std::vector<glm::vec3> generateRandomBuildingPositions(int numBuildings,
-                                                         int seed);
+                                                         int seed, float a,
+                                                         float b, float c,
+                                                         float d);
   std::vector<int> gerarAndaresPorPredio(int num_building, int seed);
   std::vector<float> gerarLarguraProfundidadeAleatorio(int num_building,
                                                        int seed);
+  std::vector<glm::vec4> gerarCoresAleatorias(int numBuildings);
+
+  bool isRandomizing;
   void loadModelFromFile(std::string_view path);
 };
 

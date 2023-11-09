@@ -1,5 +1,6 @@
 #include "window.hpp"
 
+#include <chrono>
 #include <random>
 #include <unordered_map>
 
@@ -91,12 +92,33 @@ std::vector<float> Window::gerarLarguraProfundidadeAleatorio(int num_building,
   return largura_profundidade;
 }
 
-std::vector<glm::vec3> Window::generateRandomBuildingPositions(int numBuildings,
-                                                               int seed) {
+std::vector<glm::vec4> Window::gerarCoresAleatorias(int numBuildings) {
+  std::vector<glm::vec4> cores_aleatorias;
+  srand(time(NULL)); // inicializa a semente do gerador de números aleatórios
+
+  for (int i = 0; i < numBuildings; i++) {
+    float r =
+        static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) *
+                                      2.0f); // Fator de escurecimento aplicado
+    float g =
+        static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) * 2.0f);
+    float b =
+        static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) * 2.0f);
+    float a = 1.0f; // Alfa definido como 1.0 para opacidade total
+    glm::vec4 cor(r, g, b, a);
+    cores_aleatorias.push_back(cor);
+  }
+
+  return cores_aleatorias;
+}
+
+std::vector<glm::vec3>
+Window::generateRandomBuildingPositions(int numBuildings, int seed, float a,
+                                        float b, float c, float d) {
   std::vector<glm::vec3> positions;
   std::mt19937 gen(seed);
-  std::uniform_real_distribution<float> disX(-4.25f, -0.75f);
-  std::uniform_real_distribution<float> disZ(-4.25f, -0.75f);
+  std::uniform_real_distribution<float> disX(a, b);
+  std::uniform_real_distribution<float> disZ(c, d);
 
   for (int i = 0; i < numBuildings; ++i) {
     glm::vec3 newPos;
@@ -104,7 +126,7 @@ std::vector<glm::vec3> Window::generateRandomBuildingPositions(int numBuildings,
       float posX = disX(gen);
       float posZ = disZ(gen);
       newPos = glm::vec3(posX, 0.0f, posZ);
-    } while (!isPositionValid(positions, newPos, 0.25f));
+    } while (!isPositionValid(positions, newPos, 0.3f));
 
     positions.emplace_back(newPos);
   }
@@ -122,6 +144,7 @@ bool Window::isPositionValid(const std::vector<glm::vec3> &positions,
   return true;
 }
 
+auto lastTime = std::chrono::steady_clock::now();
 void Window::onCreate() {
   auto const &assetsPath{abcg::Application::getAssetsPath()};
 
@@ -130,6 +153,7 @@ void Window::onCreate() {
   // Enable depth buffering
   abcg::glEnable(GL_DEPTH_TEST);
 
+  bool isRandomizing = false;
   // Create program
   m_program =
       abcg::createOpenGLProgram({{.source = assetsPath + "lookat.vert",
@@ -148,12 +172,6 @@ void Window::onCreate() {
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
   num_building = 15;
   // create vector
-  building_positions = generateRandomBuildingPositions(num_building, 10);
-  num_andares_por_predio = gerarAndaresPorPredio(num_building, 10);
-  num_largura = gerarLarguraProfundidadeAleatorio(num_building, 10);
-  num_profundidade = gerarLarguraProfundidadeAleatorio(num_building, 4);
-  // Load model
-  loadModelFromFile(assetsPath + "P44.obj");
 
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
@@ -244,31 +262,30 @@ void Window::loadModelFromFile(std::string_view path) {
 }
 float Window::calcularValorY(int i) { return 0.6f * (i + 1); }
 
-void Window::fazerJanela(glm::vec3 posicao_predio, GLuint modelMatrixLoc) {
-
-  // float x_predio = posicao_predio.x;
-  // float y_predio = posicao_predio.y;
-  // float z_predio = posicao_predio.z;
-
-  // float x_janela = x_predio - 0.5f;
-  // float y_janela = y_predio / 3.0f;
-  // float z_janela = z_predio;
-
-  // // Posições relativas das 4 janelas
-  // glm::vec3 posicao_janela_1{x_janela, y_janela, z_janela};
-  // glm::vec3 posicao_janela_2{x_janela, y_janela + 0.2f, z_janela};
-  // glm::vec3 posicao_janela_3{x_janela + 0.2f, y_janela, z_janela};
-  // glm::vec3 posicao_janela_4{x_janela + 0.2f, y_janela + 0.2f, z_janela};
-
-  // glm::mat4 modelMatrix{1.0f};
-  // modelMatrix = glm::translate(modelMatrix, posicao_janela_1);
-  // modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2f));
-  // abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
-
-  // m_predio.render();
-}
+void Window::fazerJanela(glm::vec3 posicao_predio, GLuint modelMatrixLoc) {}
 
 void Window::onPaint() {
+
+  building_positions = generateRandomBuildingPositions(
+      num_building, m_seed, -4.25, -0.75, -4.25, -0.75);
+
+  std::vector<std::vector<glm::vec3>> additional_building_positions = {
+      generateRandomBuildingPositions(num_building, m_seed, 4.25, 0.75, 4.25,
+                                      0.75),
+      generateRandomBuildingPositions(num_building, m_seed, -4.25, -0.75, 4.25,
+                                      0.75),
+      generateRandomBuildingPositions(num_building, m_seed, 4.25, 0.75, -4.25,
+                                      -0.75)};
+
+  for (const auto &v : additional_building_positions) {
+    building_positions.insert(building_positions.end(), v.begin(), v.end());
+  }
+
+  num_andares_por_predio = gerarAndaresPorPredio(num_building * 4, m_seed);
+  num_largura = gerarLarguraProfundidadeAleatorio(num_building * 4, m_seed);
+  num_profundidade =
+      gerarLarguraProfundidadeAleatorio(num_building * 4, m_seed);
+  cores_aleatorias = gerarCoresAleatorias(num_building * 4);
   // Clear color buffer and depth buffer
   abcg::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -288,7 +305,7 @@ void Window::onPaint() {
   auto const modelMatrixLoc{
       abcg::glGetUniformLocation(m_program, "modelMatrix")};
 
-  for (int j = 0; j < num_building; j++) {
+  for (int j = 0; j < num_building * 4; j++) {
     for (int i = 0; i < num_andares_por_predio.at(j); i++) {
       glm::mat4 modelMatrix{1.0f};
       glm::vec3 posicao_predio =
@@ -300,7 +317,8 @@ void Window::onPaint() {
           glm::vec3(num_largura.at(j), 1.0f,
                     num_profundidade.at(j))); // Ajuste os valores de escala
 
-      abcg::glUniform4f(m_colorLocation, 5.0f, 1.0f, 1.0f, 1.0f);
+      auto cor = cores_aleatorias.at(j);
+      abcg::glUniform4f(m_colorLocation, cor[0], cor[1], cor[2], cor[3]);
       abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
 
       fazerJanela(posicao_predio, modelMatrixLoc);
@@ -308,53 +326,6 @@ void Window::onPaint() {
       m_predio.render();
     }
   }
-
-  // for (int i = 0; i < num_building; ++i) {
-  //   glm::mat4 model{1.0f};
-  //   model = glm::translate(model, building_positions.at(i));
-  //   model = glm::scale(model, glm::vec3(0.025f));
-
-  //   abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
-  //   &model[0][0]);
-  //   abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-  //   abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-  //                        nullptr);
-  // }
-  // // Draw white bunny
-  // glm::mat4 model{1.0f};
-  // model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 0.0f));
-  // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
-  // model = glm::scale(model, glm::vec3(0.1f));
-
-  // abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-  // abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-  // abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-  //                      nullptr);
-
-  // // Draw yellow bunny
-  // model = glm::mat4(1.0);
-  // model = glm::translate(model, glm::vec3(0.0f, 0.0f, -1.0f));
-  // model = glm::scale(model, glm::vec3(0.1f));
-
-  // abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-  // abcg::glUniform4f(m_colorLocation, 1.0f, 0.8f, 0.0f, 1.0f);
-  // abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-  //                      nullptr);
-
-  // // Draw blue bunny
-  // model = glm::mat4(1.0);
-  // model = glm::translate(model, glm::vec3(1.0f, 0.0f, 0.0f));
-  // model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
-  // model = glm::scale(model, glm::vec3(0.1f));
-
-  // abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-  // abcg::glUniform4f(m_colorLocation, 0.0f, 0.8f, 1.0f, 1.0f);
-  // abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-  //                      nullptr);
-
-  // // Draw red bunny
-  // model = glm::mat4(1.0);
-  // model = glm::scale(model, glm::vec3(0.1f));
 
   abcg::glBindVertexArray(0);
 
@@ -364,7 +335,45 @@ void Window::onPaint() {
   abcg::glUseProgram(0);
 }
 
-void Window::onPaintUI() { abcg::OpenGLWindow::onPaintUI(); }
+void Window::onPaintUI() {
+  abcg::OpenGLWindow::onPaintUI();
+
+  // Create window for slider
+  {
+    ImGui::SetNextWindowPos(ImVec2(5, m_viewportSize.y - 94));
+    ImGui::SetNextWindowSize(ImVec2(m_viewportSize.x - 10, -1));
+    ImGui::Begin("Slider window", nullptr, ImGuiWindowFlags_NoDecoration);
+
+    // Create a slider to control the number of rendered triangles
+    {
+      // Slider will fill the space of the window
+      ImGui::PushItemWidth(m_viewportSize.x - 25);
+      ImGui::SliderInt(" ", &m_seed, 0, 100, "Seed: %d");
+      ImGui::PopItemWidth();
+    }
+
+    // Create a checkbox to toggle randomization
+    if (ImGui::Checkbox("Aleatorizando", &isRandomizing)) {
+      if (isRandomizing) {
+        lastTime = std::chrono::steady_clock::now();
+      }
+    }
+
+    // Randomize m_seed if checkbox is checked and 3 seconds have passed
+    if (isRandomizing) {
+      auto currentTime = std::chrono::steady_clock::now();
+      auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(
+                             currentTime - lastTime)
+                             .count();
+      if (elapsedTime >= 0.5) {
+        m_seed = std::rand() % 101; // Generate a random seed between 0 and 50
+        lastTime = currentTime;
+      }
+    }
+
+    ImGui::End();
+  }
+}
 
 void Window::onResize(glm::ivec2 const &size) {
   m_viewportSize = size;
