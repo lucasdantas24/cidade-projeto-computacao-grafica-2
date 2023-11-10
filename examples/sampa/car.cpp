@@ -1,6 +1,7 @@
 #include "car.hpp"
 
 #include <unordered_map>
+#include <glm/gtc/matrix_transform.hpp>
 
 // Explicit specialization of std::hash for Vertex
 template <> struct std::hash<Vertex> {
@@ -150,4 +151,32 @@ void Car::destroy() const {
   abcg::glDeleteBuffers(1, &m_EBO);
   abcg::glDeleteBuffers(1, &m_VBO);
   abcg::glDeleteVertexArrays(1, &m_VAO);
+}
+
+void Car::dolly(float speed) {
+  // Compute forward vector (view direction)
+  auto const forward{glm::normalize(m_position - m_direction)};
+
+  // Move eye and center forward (speed > 0) or backward (speed < 0)
+  m_position += forward * speed;
+  m_direction += forward * speed;
+  
+}
+
+void Car::truck(float speed) {
+  // Compute forward vector (view direction)
+  auto const forward{glm::normalize(m_position - m_direction)};
+  // Compute vector to the left
+  auto const left{glm::cross(m_up, forward)};
+
+  // Move eye and center to the left (speed < 0) or to the right (speed > 0)
+  m_position -= left * speed;
+  m_direction -= left * speed;
+}
+
+void Car::pan(float speed) {
+  // Exemplo: girar o carro para esquerda ou direita
+  glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), speed, glm::vec3(0.0f, 1.0f, 0.0f));
+  m_direction = glm::vec3(rotation * glm::vec4(m_direction, 0.0f));
+
 }

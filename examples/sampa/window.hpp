@@ -77,6 +77,9 @@ private:
 
   bool isRandomizing;
   void loadModelFromFile(std::string_view path);
+
+  void updateCar(float deltaTime);
+  bool isAtCrossRoad(glm::vec3 position);
 };
 
 #endif
