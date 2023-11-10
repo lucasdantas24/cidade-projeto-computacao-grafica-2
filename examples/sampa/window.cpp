@@ -165,6 +165,9 @@ void Window::onCreate() {
 
   m_predio.loadObj(assetsPath + "box.obj");
   m_predio.setupVAO(m_program);
+
+  m_car.loadObj(assetsPath + "Dodge_Charger_Low.obj");
+  m_car.setupVAO(m_program);
   // Get location of uniform variables
   m_viewMatrixLocation = abcg::glGetUniformLocation(m_program, "viewMatrix");
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
@@ -329,6 +332,13 @@ void Window::onPaint() {
 
   abcg::glBindVertexArray(0);
 
+  glm::mat4 modelMatrix{1.0f};
+  modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.1f, 4.0f));
+  modelMatrix = glm::scale(modelMatrix, glm::vec3(0.3f));
+  abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
+  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
+  m_car.render();
+
   // Draw ground
   m_ground.paint();
 
@@ -359,7 +369,7 @@ void Window::onPaintUI() {
       }
     }
 
-    // Randomize m_seed if checkbox is checked and 3 seconds have passed
+    // Randomize m_seed if checkbox is checked and 0,5 second have passed
     if (isRandomizing) {
       auto currentTime = std::chrono::steady_clock::now();
       auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(

@@ -6,6 +6,7 @@
 #include "camera.hpp"
 #include "ground.hpp"
 #include "predio.hpp"
+#include "car.hpp"
 #include <chrono>
 // struct Vertex {
 //   glm::vec3 position;
@@ -44,6 +45,7 @@ private:
   float m_panSpeed{};
   float m_tiltSpeed{};
   int num_building;
+  Car m_car;
   Ground m_ground;
   Predio m_predio;
   std::vector<glm::vec3> building_positions;
