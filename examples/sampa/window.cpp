@@ -166,6 +166,9 @@ void Window::onCreate() {
   m_predio.loadObj(assetsPath + "box.obj");
   m_predio.setupVAO(m_program);
 
+  m_janela.loadObj(assetsPath + "box.obj");
+  m_janela.setupVAO(m_program);
+
   m_car.loadObj(assetsPath + "Dodge_Charger_Low.obj");
   m_car.setupVAO(m_program);
   // Get location of uniform variables
@@ -175,7 +178,12 @@ void Window::onCreate() {
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
   num_building = 15;
   // create vector
+  // VARIAVEIS DA JANELA
 
+  windowWidth = 0.422f; // Adjust window width
+  windowDepth = 0.465f; // Adjust window depth
+  windowOffsetX = 0.013;
+  windowOffsetZ = windowDepth / 2.0f;
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
   abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
@@ -265,7 +273,47 @@ void Window::loadModelFromFile(std::string_view path) {
 }
 float Window::calcularValorY(int i) { return 0.6f * (i + 1); }
 
-void Window::fazerJanela(glm::vec3 posicao_predio, GLuint modelMatrixLoc) {}
+void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
+                         float buildingDepth, int floor, float windowWidth,
+                         float windowDepth, float windowOffsetX,
+                         float windowOffsetZ) {
+
+  auto const modelMatrixLoc{
+      abcg::glGetUniformLocation(m_program, "modelMatrix")};
+
+  // Calculate window position
+  glm::vec3 windowPosition = buildingPosition;
+  windowPosition.y += floor * 0.07f; // Adjust window height based on floor
+  windowPosition.x += windowOffsetX;
+  windowPosition.z += windowOffsetZ;
+
+  // Check if window position is inside the building's volume
+  if (windowPosition.x < buildingPosition.x - buildingWidth / 2.0f ||
+      windowPosition.x > buildingPosition.x + buildingWidth / 2.0f ||
+      windowPosition.z < buildingPosition.z - buildingDepth / 2.0f ||
+      windowPosition.z > buildingPosition.z + buildingDepth / 2.0f) {
+    // Skip rendering the window if it's outside the building
+    return;
+  }
+
+  // Scale the window
+  glm::mat4 modelMatrix{1.0f};
+  modelMatrix = glm::translate(modelMatrix, windowPosition);
+  modelMatrix =
+      glm::scale(modelMatrix, glm::vec3(windowWidth, 0.5f, windowDepth));
+
+  // Set window color
+  glm::vec4 windowColor =
+      glm::vec4(0.8f, 0.8f, 0.8f, 1.0f); // Example window color
+  abcg::glUniform4f(m_colorLocation, windowColor[0], windowColor[1],
+                    windowColor[2], windowColor[3]);
+
+  // Update model matrix for window
+  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
+
+  // Render the window cube
+  m_janela.render();
+}
 
 void Window::onPaint() {
 
@@ -324,9 +372,11 @@ void Window::onPaint() {
       abcg::glUniform4f(m_colorLocation, cor[0], cor[1], cor[2], cor[3]);
       abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
 
-      fazerJanela(posicao_predio, modelMatrixLoc);
-
       m_predio.render();
+      // Render windows on each floor
+
+      fazerJanela(posicao_predio, num_largura.at(j), num_profundidade.at(j), i,
+                  windowWidth, windowDepth, windowOffsetX, windowOffsetZ);
     }
   }
 
@@ -343,9 +393,9 @@ void Window::onPaint() {
 
   // Aplicar a rotação
   if (glm::length(axisOfRotation) != 0) {
-      modelMatrix = glm::rotate(modelMatrix, angle, axisOfRotation);
+    modelMatrix = glm::rotate(modelMatrix, angle, axisOfRotation);
   }
-  
+
   abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
   abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
   m_car.render();
@@ -359,28 +409,47 @@ void Window::onPaint() {
 void Window::onPaintUI() {
   abcg::OpenGLWindow::onPaintUI();
 
-  // Create window for slider
+  // Create window for sliders
   {
-    ImGui::SetNextWindowPos(ImVec2(5, m_viewportSize.y - 94));
-    ImGui::SetNextWindowSize(ImVec2(m_viewportSize.x - 10, -1));
-    ImGui::Begin("Slider window", nullptr, ImGuiWindowFlags_NoDecoration);
 
-    // Create a slider to control the number of rendered triangles
+    // Obtém a largura da tela
+    float screenWidth = static_cast<float>(m_viewportSize.x);
+
+    // Define a largura e a altura da janela
+    ImVec2 windowSize(550, 150);
+
+    // Calcula a posição X para começar no canto superior direito
+    float windowX = screenWidth - windowSize.x - 5;
+
+    // Define a posição Y
+    float windowY = m_viewportSize.y - 100;
+
+    // Configura a posição e o tamanho da janela
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(windowX, windowY), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Slider window");
+    // Original sliders
     {
-      // Slider will fill the space of the window
       ImGui::PushItemWidth(m_viewportSize.x - 25);
       ImGui::SliderInt(" ", &m_seed, 0, 100, "Seed: %d");
       ImGui::PopItemWidth();
     }
 
-    // Create a checkbox to toggle randomization
+    {
+      ImGui::SliderFloat("Largura", &windowWidth, 0.1f, 2.0f);
+      ImGui::SliderFloat("Profundidade", &windowDepth, 0.1f, 2.0f);
+      ImGui::SliderFloat("OffsetX", &windowOffsetX, -2.0f, 2.0f);
+      ImGui::SliderFloat("OffsetZ", &windowOffsetZ, -2.0f, 2.0f);
+    }
+
+    // Checkbox to toggle randomization
     if (ImGui::Checkbox("Aleatorizando", &isRandomizing)) {
       if (isRandomizing) {
         lastTime = std::chrono::steady_clock::now();
       }
     }
 
-    // Randomize m_seed if checkbox is checked and 0,5 second have passed
+    // Randomize m_seed if checkbox is checked and 0.5 second have passed
     if (isRandomizing) {
       auto currentTime = std::chrono::steady_clock::now();
       auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(
@@ -423,14 +492,13 @@ void Window::onUpdate() {
 }
 
 void Window::updateCar(float deltaTime) {
-    // Verifique se o carro está em um cruzamento
-    if (Window::isAtCrossRoad(m_car.m_position)) {
-      m_car.pan(-1.0f * deltaTime);
-    }
-        
+  // Verifique se o carro está em um cruzamento
+  if (Window::isAtCrossRoad(m_car.m_position)) {
+    m_car.pan(-1.0f * deltaTime);
+  }
 
-    // Mova o carro para frente
-    m_car.dolly(-0.5f * deltaTime);
+  // Mova o carro para frente
+  m_car.dolly(-0.5f * deltaTime);
 }
 
 bool Window::isAtCrossRoad(glm::vec3 position) {

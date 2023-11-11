@@ -4,9 +4,9 @@
 #include "abcgOpenGL.hpp"
 
 #include "camera.hpp"
+#include "car.hpp"
 #include "ground.hpp"
 #include "predio.hpp"
-#include "car.hpp"
 #include <chrono>
 // struct Vertex {
 //   glm::vec3 position;
@@ -24,7 +24,9 @@ protected:
   void onDestroy() override;
   void onUpdate() override;
   float calcularValorY(int i);
-  void fazerJanela(glm::vec3 posicao_predio, GLuint modelMatrixLoc);
+  void fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
+                   float buildingDepth, int floor, float windowWidth,
+                   float windowDepth, float windowOffsetX, float windowOffsetZ);
 
 private:
   glm::ivec2 m_viewportSize{};
@@ -48,6 +50,7 @@ private:
   Car m_car;
   Ground m_ground;
   Predio m_predio;
+  Predio m_janela;
   std::vector<glm::vec3> building_positions;
   std::vector<int> num_andares_por_predio;
   std::vector<float> num_largura;
@@ -63,7 +66,12 @@ private:
 
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
-  int m_seed;
+  int m_seed = 5;
+  float windowWidth; // Adjust window width
+  float windowDepth; // Adjust window depth
+  float windowOffsetX;
+  float windowOffsetZ;
+  bool resizeableWindowOpen = false;
   bool isPositionValid(const std::vector<glm::vec3> &positions,
                        const glm::vec3 &newPosition, float radius);
   std::vector<glm::vec3> generateRandomBuildingPositions(int numBuildings,
