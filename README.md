@@ -2,10 +2,14 @@
 
 O **Sampa City** é um projeto em 3D que simula a construção de uma cidade com prédios representados por cubos. A cidade é gerada de forma procedural, podendo ser alterada com base em uma semente específica. Os prédios são coloridos, tendo a opção de gerar cores aleatoriamente ou definir uma única cor para todos os prédios. Além disso, há a opção de clicar em um botão de aleatorização, que troca automaticamente as sementes, alterando as posições e tamanhos dos prédios. É possível definir o número de prédios que aparecem em cada quadrante. Além disso, podemos controlar as janelas dos prédios, mudando largura, profundidade e offset da janela, além de alterar se a mesma está ligada ou desligada. Há também um balão, que se move ao redor da cidade, podendo ser esse movimento horário ou anti-horário.
 
-# Link WEB
+## Autores
+- Rodrigo Hisashi Takeuti (RA: 11201921914)
+- Lucas Dantas de Lima da Silva (RA: 11201921341)
+
+## Link WEB
 O link web se encontra [aqui](https://rodrigohisashi.github.io/cidade-projeto-computacao-grafica/sampa/).
 
-# Controles
+## Controles
 
 É possível controlar a câmera através do teclado:
 
@@ -17,7 +21,7 @@ O link web se encontra [aqui](https://rodrigohisashi.github.io/cidade-projeto-co
 - E = Mover câmera para direita
 
 
-# Descrição da Implementação
+## Descrição da Implementação
 
 Temos as classes \`Balloon\`, \`Camera\`, \`Ground\`, \`Predio\` e \`Window\`, com as seguintes funções:
 - \`Balloon\`: Classe que gera e movimenta o balão;
@@ -26,7 +30,7 @@ Temos as classes \`Balloon\`, \`Camera\`, \`Ground\`, \`Predio\` e \`Window\`, c
 - \`Predio\`: Classe que gera um prédio;
 - \`Window\`: Classe que gerencia a visão do usuário e interação entre o usuário e os gráficos apresentados.
 
-## \`Camera\`
+### \`Camera\`
 Essa classe é a mesma utilizada para o projeto lookat apresentado em classe. As únicas alterações feitas foram a introdução do método \`tilt(float speed)\`, que  serve para movimentar a câmera para cima e para baixo, e a posição inicial da câmera, alterada no arquivo .hpp. 
 No caso de \`tilt(float speed)\`, a implementação foi feita alterando \`m_eye\` e \`m_at\` usando o vetor \`m_up\`:
 ```cpp
@@ -45,10 +49,10 @@ glm::vec3 m_at{0.0f, 1.25f, 0.0f}; // Look-at point
 glm::vec3 m_up{0.0f, 1.0f, 0.0f};  // "up" direction
 ```
 
-## \`Balloon\` e \`Predio\`
+### \`Balloon\` e \`Predio\`
 Ambas classes são baseadas na classe \`Model\` apresentada no projeto Viewer, no caso de \`Predio\` não houve alterações significativas, já no caso de \`Balloon\` foram adicionados 3 métodos \`dolly(float speed)\`, \`truck(float speed)\` e \`tilt(float speed)\`, e 3 atributos \`m_position\`, \`m_direction\` e \`m_up\`
 
-### Alterações na Classe \`Balloon\`
+#### Alterações na Classe \`Balloon\`
 Os métodos adicionados são relacionados ao movimento do carro, sendo \`dolly(float speed)\` utilizado para o movimento para frente e para trás, \`truck(float speed)\` utilizado para o movimento para direita e esquerda e \`tilt(float speed)\` para o movimento para cima e para baixo. Esses métodos foram adaptados da classe \`Camera\`
 ```cpp
 void Balloon::dolly(float speed) {
@@ -81,7 +85,7 @@ void Balloon::tilt(float speed) {
 ```
 A posição do balão foi definida como {0.0f, 3.0f, 0.0f} para que ele parta do centro da cidade de um ponto elevado e a direção foi definida {0.0f, 3.0f, -1.0f}, para que ele inicie se dirigindo a direção negativa do eixo z.
 
-## \`Ground\`
+### \`Ground\`
 Essa classe foi baseada na classe de mesmo nome apresentada no projeto lookat. A classe segue o mesmo príncipio, mantendo o mesmo método \`create(GLuint program)\`, porém, alteramos o método \`paint()\`, de forma que pintamos o quadrado de cinza escuro caso esteja na borda ou na cruz central, de forma a desenhar uma rua, e cinza claro caso contrário, representando o espaço onde os prédios serão desenhados.
 ```cpp
 void Ground::paint() {
@@ -112,15 +116,15 @@ void Ground::paint() {
 }
 ```
 
-## \`Window\`
+### \`Window\`
 Essa classe, responsável por gerenciar a janela de renderização e interação com o usuário foi aquela em que houve o maior número de mudanças. Passaremos pelos métodos e suas alterações.
-### \`onEvent(SDL_Event const &event)\`
+#### \`onEvent(SDL_Event const &event)\`
 No caso desse método, somente houve alteração para que as setas do teclado gerenciem o movimento para cima e para baixo.
 
-### \`onCreate()\`
+#### \`onCreate()\`
 No caso desse método, alteramos para carregar os modelos 3D e inicializar os valores de algumas váriaveis usadas para geração dos prédios e janelas.
 
-### \`gerarAndaresPorPredio(int num_building, int seed)\`, \`gerarLarguraProfundidadeAleatorio(int num_building, int seed)\`, \`gerarCoresAleatorias(int numBuildings)\` e \`generateRandomBuildingPositions(int numBuildings, int seed, float a, float b, float c, float d)\`
+#### \`gerarAndaresPorPredio(int num_building, int seed)\`, \`gerarLarguraProfundidadeAleatorio(int num_building, int seed)\`, \`gerarCoresAleatorias(int numBuildings)\` e \`generateRandomBuildingPositions(int numBuildings, int seed, float a, float b, float c, float d)\`
 Esses métodos foram criados por nós para gerar aleatoriamente, respectivamente, o número de andares para cada prédio, valores para largura e profundidade dos prédios, cores aleatórias para os prédios e posições para os prédios dentro de uma área específica com base em uma semente. Esses métodos seguem a mesma estrutura, mudando somente os intervalos de geração. Assim, segue o exemplo do método \`gerarAndaresPorPredio(int num_building, int seed)\`:
 ```cpp
 std::vector<int> Window::gerarAndaresPorPredio(int num_building, int seed) {
@@ -143,7 +147,7 @@ std::vector<int> Window::gerarAndaresPorPredio(int num_building, int seed) {
 }
 ```
 
-### \`isPositionValid(const std::vector<glm::vec3> &positions, const glm::vec3 &newPosition, float radius)\`
+#### \`isPositionValid(const std::vector<glm::vec3> &positions, const glm::vec3 &newPosition, float radius)\`
 Esse método é usado pelo método \`generateRandomBuildingPositions(int numBuildings, int seed, float a, float b, float c, float d)\` para que não ocorra uma grande sobreposição entre diferentes prédios.
 ```cpp
 bool Window::isPositionValid(const std::vector<glm::vec3> &positions,
@@ -157,7 +161,7 @@ bool Window::isPositionValid(const std::vector<glm::vec3> &positions,
 }
 ```
 
-### \`fazerJanela(glm::vec3 buildingPosition, float buildingWidth, float buildingDepth, int floor, float windowWidth, float windowDepth, float windowOffsetX, float windowOffsetZ)\`
+#### \`fazerJanela(glm::vec3 buildingPosition, float buildingWidth, float buildingDepth, int floor, float windowWidth, float windowDepth, float windowOffsetX, float windowOffsetZ)\`
 Esse método é utilizado para gerar as janelas nos prédios, ela usa o mesmo modelo do prédio, box.obj, e cria uma janela por andar, com o tamanho e características podendo serem alteradas no ImGui.
 ```cpp
 void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
@@ -209,7 +213,7 @@ void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
 }
 ```
 
-### \`onPaint()\`
+#### \`onPaint()\`
 Esse método é responsável por gerar os objetos na tela.
 Primeiramente calculamos as caracteristicas dos prédios usando os métodos de geração automática:
 ```cpp
@@ -299,7 +303,7 @@ Por fim geramos o balão e o chão:
   m_ground.paint();
 ```
 
-### \`onPaintUI()\`
+#### \`onPaintUI()\`
 Nesse método, geramos algumas janelas para interação com o usuário.
 Temos primeiramente uma janela que permite que o usuário altere informações relacionadas aos prédios, como cores, semente de geração, etc.:
 ```cpp
@@ -425,7 +429,7 @@ Por fim, há uma janela que mostra a posição do balão e muda seu movimento pa
 }
 ```
 
-### \`onUpdate()\`
+#### \`onUpdate()\`
 Nesse método, é atualizado as posições da câmera e do balão.
 ```cpp
 void Window::onUpdate() {
@@ -445,7 +449,7 @@ void Window::onUpdate() {
 }
 ```
 
-### \`updateBalloonSpeed()\`
+#### \`updateBalloonSpeed()\`
 Essa função é usada para alterar o movimento do balão, fazendo o movimento horário e anti-horário, e o movimento para cima e para baixo:
 ```cpp
 void Window::updateBalloonSpeed() {
