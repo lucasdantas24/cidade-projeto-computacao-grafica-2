@@ -169,6 +169,9 @@ void Window::onCreate() {
   m_janela.loadObj(assetsPath + "box.obj");
   m_janela.setupVAO(m_program);
 
+  m_balloon.loadObj(assetsPath + "Air_Balloon.obj");
+  m_balloon.setupVAO(m_program);
+
   // Get location of uniform variables
   m_viewMatrixLocation = abcg::glGetUniformLocation(m_program, "viewMatrix");
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
@@ -396,6 +399,13 @@ void Window::onPaint() {
 
   abcg::glBindVertexArray(0);
 
+  glm::mat4 modelMatrix{1.0f};
+  modelMatrix = glm::translate(modelMatrix, m_balloon.m_position);
+  modelMatrix = glm::scale(modelMatrix, glm::vec3(0.8f));
+  abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
+  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
+  m_balloon.render();
+
   // Draw ground
   m_ground.paint();
 
@@ -507,6 +517,23 @@ void Window::onPaintUI() {
     }
     ImGui::End();
   }
+
+  {
+  // Iniciando uma nova janela ImGui
+    ImGui::Begin("Balloon Status");
+
+    // Obtendo a posição do balloon
+    auto balloonPosition = m_balloon.m_position; // ou m_balloon.m_position, dependendo de como você implementou
+
+    // Mostrando a posição do balloon
+    ImGui::Text("Balloon Position:");
+    ImGui::Text("X: %.2f, Y: %.2f, Z: %.2f", balloonPosition.x, balloonPosition.y, balloonPosition.z);
+
+    // Mostrando a tiltSpeed do balloon
+    ImGui::Text("Balloon Tilt Speed: %.2f", m_balloon_tiltSpeed);
+
+    ImGui::End();
+  }
 }
 
 void Window::onResize(glm::ivec2 const &size) {
@@ -526,9 +553,53 @@ void Window::onDestroy() {
 void Window::onUpdate() {
   auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
 
+  updateBalloonSpeed();
+
+  m_balloon.dolly(m_balloon_dollySpeed * deltaTime);
+  m_balloon.truck(m_balloon_truckSpeed * deltaTime);
+  m_balloon.tilt(m_balloon_tiltSpeed * deltaTime);
+
   // Update LookAt camera
   m_camera.dolly(m_dollySpeed * deltaTime);
   m_camera.truck(m_truckSpeed * deltaTime);
   m_camera.pan(m_panSpeed * deltaTime);
   m_camera.tilt(m_tiltSpeed * deltaTime);
+}
+
+void Window::updateBalloonSpeed() {
+
+  if (m_balloon.m_position.z > -5.0f
+   && m_balloon.m_position.z < 5.0f
+   && m_balloon.m_position.x > -0.5f
+   && m_balloon.m_position.x < 0.5f) {
+    m_balloon_dollySpeed = 0.5f;
+    m_balloon_truckSpeed = 0.0f;
+   }
+  if (m_balloon.m_position.z >= 5.0f
+   && m_balloon.m_position.x < 5.0f) {
+    m_balloon_dollySpeed = 0.0f;
+    m_balloon_truckSpeed = -0.05f;
+   }
+  if (m_balloon.m_position.z > -5.0f
+   && m_balloon.m_position.x >= 5.0f) {
+    m_balloon_dollySpeed = -0.5f;
+    m_balloon_truckSpeed = 0.0f;
+   }
+  if (m_balloon.m_position.z <= -5.0f
+   && m_balloon.m_position.x > -5.0f) {
+    m_balloon_dollySpeed = 0.0f;
+    m_balloon_truckSpeed = 0.05f;
+   }
+  if (m_balloon.m_position.z < 5.0f
+   && m_balloon.m_position.x <= -5.0f) {
+    m_balloon_dollySpeed = 0.5f;
+    m_balloon_truckSpeed = 0.0f;
+   }
+
+  if (m_balloon.m_position.y > 3.5f) {
+    m_balloon_tiltSpeed = m_balloon_tiltSpeed * -1;
+  }
+  if (m_balloon.m_position.y < 2.5f) {
+    m_balloon_tiltSpeed = m_balloon_tiltSpeed * -1;
+  }
 }

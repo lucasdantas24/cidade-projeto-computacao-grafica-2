@@ -4,7 +4,7 @@
 #include "abcgOpenGL.hpp"
 
 #include "camera.hpp"
-#include "car.hpp"
+#include "ballon.hpp"
 #include "ground.hpp"
 #include "predio.hpp"
 #include <chrono>
@@ -27,6 +27,7 @@ protected:
   void fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
                    float buildingDepth, int floor, float windowWidth,
                    float windowDepth, float windowOffsetX, float windowOffsetZ);
+  void updateBalloonSpeed();
 
 private:
   glm::ivec2 m_viewportSize{};
@@ -47,7 +48,10 @@ private:
   float m_panSpeed{};
   float m_tiltSpeed{};
   int num_building;
-  Car m_car;
+  Ballon m_balloon;
+  float m_balloon_dollySpeed{};
+  float m_balloon_truckSpeed{};
+  float m_balloon_tiltSpeed{-0.01f};
   Ground m_ground;
   Predio m_predio;
   Predio m_janela;
@@ -88,9 +92,6 @@ private:
 
   bool isRandomizing;
   void loadModelFromFile(std::string_view path);
-
-  void updateCar(float deltaTime);
-  bool isAtCrossRoad(glm::vec3 position);
 };
 
 #endif
