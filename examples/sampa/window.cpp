@@ -528,7 +528,7 @@ void Window::onPaintUI() {
   }
 
   {
-    ImVec2 windowSize(200, 100);
+    ImVec2 windowSize(200, 150);
     float newWindowX = 5;
     // Define a posição Y
     float newWindowY = 140;
@@ -536,13 +536,13 @@ void Window::onPaintUI() {
     ImGui::SetNextWindowPos(ImVec2(newWindowX, newWindowY), ImGuiCond_FirstUseEver);
 
     // Iniciando uma nova janela ImGui
-    ImGui::Begin("Balloon Status");
+    ImGui::Begin("Balão");
 
     // Obtendo a posição do balloon
     auto balloonPosition = m_balloon.m_position; // ou m_balloon.m_position, dependendo de como você implementou
 
     // Mostrando a posição do balloon
-    ImGui::Text("Balloon Position:");
+    ImGui::Text("Posição do Balão:");
     ImGui::Text("X: %.2f, Y: %.2f, Z: %.2f", balloonPosition.x, balloonPosition.y, balloonPosition.z);
 
     ImGui::Text("Movimento Balão:");

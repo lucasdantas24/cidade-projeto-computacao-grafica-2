@@ -91,7 +91,7 @@ private:
                                                        int seed);
   std::vector<glm::vec4> gerarCoresAleatorias(int numBuildings);
 
-  bool isRandomizing;
+  bool isRandomizing{false};
   void loadModelFromFile(std::string_view path);
 };
 
