@@ -72,7 +72,9 @@ private:
   float windowOffsetX;
   float windowOffsetZ;
   bool cores_random;
+  bool janelas_acesas;
   bool resizeableWindowOpen = false;
+  std::array<float, 4> m_clearColor{0.906f, 0.910f, 0.918f, 1.0f};
   bool isPositionValid(const std::vector<glm::vec3> &positions,
                        const glm::vec3 &newPosition, float radius);
   std::vector<glm::vec3> generateRandomBuildingPositions(int numBuildings,

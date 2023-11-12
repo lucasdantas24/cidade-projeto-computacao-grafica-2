@@ -186,6 +186,7 @@ void Window::onCreate() {
   windowOffsetZ = windowDepth / 2.0f;
   // COR RANDOM
   cores_random = false;
+  janelas_acesas = true;
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
   abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
@@ -304,9 +305,15 @@ void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
   modelMatrix =
       glm::scale(modelMatrix, glm::vec3(windowWidth, 0.5f, windowDepth));
 
-  // Set window color
-  glm::vec4 windowColor =
-      glm::vec4(0.8f, 0.8f, 0.8f, 1.0f); // Example window color
+  glm::vec4 windowColor;
+
+  if (janelas_acesas) {
+    windowColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f); // Example window color
+  } else {
+    windowColor = glm::vec4(0.0f, 0.0f, 0.0f,
+                            1.0f); // Black color when janelas_acesas is false
+  }
+
   abcg::glUniform4f(m_colorLocation, windowColor[0], windowColor[1],
                     windowColor[2], windowColor[3]);
 
@@ -375,7 +382,8 @@ void Window::onPaint() {
         cor = cores_aleatorias.at(j);
       } else {
         // Cor fixa, por exemplo, cinza
-        cor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f); // R, G, B, A
+        cor = glm::vec4(m_clearColor.at(0), m_clearColor.at(1),
+                        m_clearColor.at(2), m_clearColor.at(3));
       }
       abcg::glUniform4f(m_colorLocation, cor[0], cor[1], cor[2], cor[3]);
       abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
@@ -416,26 +424,25 @@ void Window::onPaint() {
 
 void Window::onPaintUI() {
   abcg::OpenGLWindow::onPaintUI();
+  // Obtém a largura da tela
+  float screenWidth = static_cast<float>(m_viewportSize.x);
+
+  // Define a largura e a altura da janela
+  ImVec2 windowSize(550, 150);
+
+  // Calcula a posição X para começar no canto superior direito
+  float windowX = screenWidth - windowSize.x - 5;
+
+  // Define a posição Y
+  float windowY = m_viewportSize.y - 100;
 
   // Create window for sliders
   {
 
-    // Obtém a largura da tela
-    float screenWidth = static_cast<float>(m_viewportSize.x);
-
-    // Define a largura e a altura da janela
-    ImVec2 windowSize(550, 150);
-
-    // Calcula a posição X para começar no canto superior direito
-    float windowX = screenWidth - windowSize.x - 5;
-
-    // Define a posição Y
-    float windowY = m_viewportSize.y - 100;
-
     // Configura a posição e o tamanho da janela
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(windowX, windowY), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Slider window");
+    ImGui::Begin("Predios");
     // Original sliders
     {
       ImGui::PushItemWidth(m_viewportSize.x - 25);
@@ -462,13 +469,6 @@ void Window::onPaintUI() {
       }
     }
 
-    ImGui::Text("Variaveis das janelas:");
-    {
-      ImGui::SliderFloat("Largura", &windowWidth, 0.1f, 2.0f);
-      ImGui::SliderFloat("Profundidade", &windowDepth, 0.1f, 2.0f);
-      ImGui::SliderFloat("OffsetX", &windowOffsetX, -2.0f, 2.0f);
-      ImGui::SliderFloat("OffsetZ", &windowOffsetZ, -2.0f, 2.0f);
-    }
     ImGui::Text("Cores Aleatórias:");
 
     if (ImGui::RadioButton("Ligado", cores_random)) {
@@ -480,6 +480,40 @@ void Window::onPaintUI() {
 
     if (ImGui::RadioButton("Desligado", !cores_random)) {
       cores_random = false;
+      // Additional logic when "Desligado" is selected
+    }
+
+    // Editar a cor do predio
+
+    ImGui::Text("Cor dos predios:");
+    ImGui::ColorEdit3("clear color", m_clearColor.data());
+
+    ImGui::End();
+  }
+
+  {
+    ImVec2 windowSize(250, 150);
+    // Configura a posição e o tamanho da janela
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(windowX, windowY), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Janela");
+    ImGui::Text("Variaveis das janelas:");
+    {
+      ImGui::SliderFloat("Largura", &windowWidth, 0.1f, 2.0f);
+      ImGui::SliderFloat("Profundidade", &windowDepth, 0.1f, 2.0f);
+      ImGui::SliderFloat("OffsetX", &windowOffsetX, -2.0f, 2.0f);
+      ImGui::SliderFloat("OffsetZ", &windowOffsetZ, -2.0f, 2.0f);
+    }
+
+    ImGui::Text("Janelas acesas:");
+
+    if (ImGui::RadioButton("Ligado", janelas_acesas)) {
+      janelas_acesas = true;
+      // Additional logic when "Ligado" is selected
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Desligado", !janelas_acesas)) {
+      janelas_acesas = false;
       // Additional logic when "Desligado" is selected
     }
 
