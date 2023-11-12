@@ -15,6 +15,7 @@ public:
   void tilt(float speed);
   glm::mat4 const &getViewMatrix() const { return m_viewMatrix; }
   glm::mat4 const &getProjMatrix() const { return m_projMatrix; }
+  void reset();
 
 private:
   glm::vec3 m_eye{0.0f, 8.0f, 8.5f}; // Camera position

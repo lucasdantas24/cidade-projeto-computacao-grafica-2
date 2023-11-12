@@ -14,21 +14,21 @@ template <> struct std::hash<Vertex> {
 void Window::onEvent(SDL_Event const &event) {
   if (event.type == SDL_KEYDOWN) {
     if (event.key.keysym.sym == SDLK_w)
-      m_dollySpeed = 1.0f;
+      m_dollySpeed = 2.0f;
     if (event.key.keysym.sym == SDLK_s)
-      m_dollySpeed = -1.0f;
+      m_dollySpeed = -2.0f;
     if (event.key.keysym.sym == SDLK_UP)
-      m_tiltSpeed = 1.0f;
+      m_tiltSpeed = 2.0f;
     if (event.key.keysym.sym == SDLK_DOWN)
-      m_tiltSpeed = -1.0f;
+      m_tiltSpeed = -2.0f;
     if (event.key.keysym.sym == SDLK_LEFT || event.key.keysym.sym == SDLK_a)
-      m_panSpeed = -1.0f;
+      m_panSpeed = -2.0f;
     if (event.key.keysym.sym == SDLK_RIGHT || event.key.keysym.sym == SDLK_d)
-      m_panSpeed = 1.0f;
+      m_panSpeed = 2.0f;
     if (event.key.keysym.sym == SDLK_q)
-      m_truckSpeed = -1.0f;
+      m_truckSpeed = -2.0f;
     if (event.key.keysym.sym == SDLK_e)
-      m_truckSpeed = 1.0f;
+      m_truckSpeed = 2.0f;
   }
   if (event.type == SDL_KEYUP) {
     if ((event.key.keysym.sym == SDLK_w) && m_dollySpeed > 0)
@@ -516,6 +516,15 @@ void Window::onPaintUI() {
       // Additional logic when "Desligado" is selected
     }
 
+    ImGui::End();
+  }
+
+  {
+
+    ImGui::Begin("Camera");
+    if (ImGui::Button("Resetar a camera")) {
+      m_camera.reset();
+    }
     ImGui::End();
   }
 }
