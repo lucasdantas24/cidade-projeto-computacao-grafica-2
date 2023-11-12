@@ -71,6 +71,7 @@ private:
   float windowDepth; // Adjust window depth
   float windowOffsetX;
   float windowOffsetZ;
+  bool cores_random;
   bool resizeableWindowOpen = false;
   bool isPositionValid(const std::vector<glm::vec3> &positions,
                        const glm::vec3 &newPosition, float radius);

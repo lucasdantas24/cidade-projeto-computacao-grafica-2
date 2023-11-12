@@ -184,6 +184,8 @@ void Window::onCreate() {
   windowDepth = 0.465f; // Adjust window depth
   windowOffsetX = 0.013;
   windowOffsetZ = windowDepth / 2.0f;
+  // COR RANDOM
+  cores_random = false;
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
   abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
@@ -367,8 +369,14 @@ void Window::onPaint() {
           modelMatrix,
           glm::vec3(num_largura.at(j), 1.0f,
                     num_profundidade.at(j))); // Ajuste os valores de escala
+      glm::vec4 cor;
 
-      auto cor = cores_aleatorias.at(j);
+      if (cores_random) {
+        cor = cores_aleatorias.at(j);
+      } else {
+        // Cor fixa, por exemplo, cinza
+        cor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f); // R, G, B, A
+      }
       abcg::glUniform4f(m_colorLocation, cor[0], cor[1], cor[2], cor[3]);
       abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
 
@@ -435,13 +443,6 @@ void Window::onPaintUI() {
       ImGui::PopItemWidth();
     }
 
-    {
-      ImGui::SliderFloat("Largura", &windowWidth, 0.1f, 2.0f);
-      ImGui::SliderFloat("Profundidade", &windowDepth, 0.1f, 2.0f);
-      ImGui::SliderFloat("OffsetX", &windowOffsetX, -2.0f, 2.0f);
-      ImGui::SliderFloat("OffsetZ", &windowOffsetZ, -2.0f, 2.0f);
-    }
-
     // Checkbox to toggle randomization
     if (ImGui::Checkbox("Aleatorizando", &isRandomizing)) {
       if (isRandomizing) {
@@ -459,6 +460,27 @@ void Window::onPaintUI() {
         m_seed = std::rand() % 101; // Generate a random seed between 0 and 50
         lastTime = currentTime;
       }
+    }
+
+    ImGui::Text("Variaveis das janelas:");
+    {
+      ImGui::SliderFloat("Largura", &windowWidth, 0.1f, 2.0f);
+      ImGui::SliderFloat("Profundidade", &windowDepth, 0.1f, 2.0f);
+      ImGui::SliderFloat("OffsetX", &windowOffsetX, -2.0f, 2.0f);
+      ImGui::SliderFloat("OffsetZ", &windowOffsetZ, -2.0f, 2.0f);
+    }
+    ImGui::Text("Cores Aleatórias:");
+
+    if (ImGui::RadioButton("Ligado", cores_random)) {
+      cores_random = true;
+      // Additional logic when "Ligado" is selected
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::RadioButton("Desligado", !cores_random)) {
+      cores_random = false;
+      // Additional logic when "Desligado" is selected
     }
 
     ImGui::End();
