@@ -8,11 +8,6 @@
 #include "ground.hpp"
 #include "predio.hpp"
 #include <chrono>
-// struct Vertex {
-//   glm::vec3 position;
-
-//   friend bool operator==(Vertex const &, Vertex const &) = default;
-// };
 
 class Window : public abcg::OpenGLWindow {
 protected:
@@ -78,7 +73,6 @@ private:
   float windowOffsetZ;
   bool cores_random;
   bool janelas_acesas;
-  bool resizeableWindowOpen = false;
   std::array<float, 4> m_clearColor{0.906f, 0.910f, 0.918f, 1.0f};
   bool isPositionValid(const std::vector<glm::vec3> &positions,
                        const glm::vec3 &newPosition, float radius);
@@ -92,7 +86,6 @@ private:
   std::vector<glm::vec4> gerarCoresAleatorias(int numBuildings);
 
   bool isRandomizing{false};
-  void loadModelFromFile(std::string_view path);
 };
 
 #endif

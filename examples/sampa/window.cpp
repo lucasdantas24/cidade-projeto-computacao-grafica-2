@@ -153,7 +153,6 @@ void Window::onCreate() {
   // Enable depth buffering
   abcg::glEnable(GL_DEPTH_TEST);
 
-  bool isRandomizing = false;
   // Create program
   m_program =
       abcg::createOpenGLProgram({{.source = assetsPath + "lookat.vert",
@@ -224,57 +223,6 @@ void Window::onCreate() {
   abcg::glBindVertexArray(0);
 }
 
-void Window::loadModelFromFile(std::string_view path) {
-  tinyobj::ObjReader reader;
-
-  if (!reader.ParseFromFile(path.data())) {
-    if (!reader.Error().empty()) {
-      throw abcg::RuntimeError(
-          fmt::format("Failed to load model {} ({})", path, reader.Error()));
-    }
-    throw abcg::RuntimeError(fmt::format("Failed to load model {}", path));
-  }
-
-  if (!reader.Warning().empty()) {
-    fmt::print("Warning: {}\n", reader.Warning());
-  }
-
-  auto const &attributes{reader.GetAttrib()};
-  auto const &shapes{reader.GetShapes()};
-
-  m_vertices.clear();
-  m_indices.clear();
-
-  // A key:value map with key=Vertex and value=index
-  std::unordered_map<Vertex, GLuint> hash{};
-
-  // Loop over shapes
-  for (auto const &shape : shapes) {
-    // Loop over indices
-    for (auto const offset : iter::range(shape.mesh.indices.size())) {
-      // Access to vertex
-      auto const index{shape.mesh.indices.at(offset)};
-
-      // Vertex position
-      auto const startIndex{3 * index.vertex_index};
-      auto const vx{attributes.vertices.at(startIndex + 0)};
-      auto const vy{attributes.vertices.at(startIndex + 1)};
-      auto const vz{attributes.vertices.at(startIndex + 2)};
-
-      Vertex const vertex{.position = {vx, vy, vz}};
-
-      // If map doesn't contain this vertex
-      if (!hash.contains(vertex)) {
-        // Add this index (size of m_vertices)
-        hash[vertex] = m_vertices.size();
-        // Add this vertex
-        m_vertices.push_back(vertex);
-      }
-
-      m_indices.push_back(hash[vertex]);
-    }
-  }
-}
 float Window::calcularValorY(int i) { return 0.6f * (i + 1); }
 
 void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,

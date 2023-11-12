@@ -37,6 +37,7 @@ void Camera::truck(float speed) {
 }
 
 void Camera::pan(float speed) {
+  // Rotação da câmera
   glm::mat4 transform{1.0f};
 
   // Rotate camera around its local y axis
@@ -50,10 +51,7 @@ void Camera::pan(float speed) {
 }
 
 void Camera::tilt(float speed) {
-  glm::vec3 viewDirection = glm::normalize(m_at - m_eye);
-  glm::vec3 right = glm::normalize(glm::cross(viewDirection, m_up));
-
-  // Move camera up and down
+  // Mover câmera para cima e para baixo
   m_eye += m_up * speed;
   m_at += m_up * speed;
 
@@ -61,6 +59,7 @@ void Camera::tilt(float speed) {
 }
 
 void Camera::reset() {
+  // Resetando câmera para posição inicial
   m_eye = glm::vec3{0.0f, 8.0f, 8.5f}; // Camera position
   m_at = glm::vec3{0.0f, 1.25f, 0.0f}; // Look-at point
   m_up = glm::vec3{0.0f, 1.0f, 0.0f};  // "up" direction
