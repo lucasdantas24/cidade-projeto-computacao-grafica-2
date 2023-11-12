@@ -52,6 +52,7 @@ private:
   float m_balloon_dollySpeed{};
   float m_balloon_truckSpeed{};
   float m_balloon_tiltSpeed{-0.01f};
+  int m_movimento{1};
   Ground m_ground;
   Predio m_predio;
   Predio m_janela;

@@ -418,13 +418,13 @@ void Window::onPaintUI() {
   float screenWidth = static_cast<float>(m_viewportSize.x);
 
   // Define a largura e a altura da janela
-  ImVec2 windowSize(550, 150);
+  ImVec2 windowSize(400, 150);
 
   // Calcula a posição X para começar no canto superior direito
   float windowX = screenWidth - windowSize.x - 5;
 
   // Define a posição Y
-  float windowY = m_viewportSize.y - 100;
+  float windowY = 0;
 
   // Create window for sliders
   {
@@ -457,7 +457,7 @@ void Window::onPaintUI() {
         lastTime = currentTime;
       }
     }
-
+    
     ImGui::Text("Cores Aleatórias:");
 
     if (ImGui::RadioButton("Ligado", cores_random)) {
@@ -480,11 +480,15 @@ void Window::onPaintUI() {
     ImGui::End();
   }
 
+
   {
     ImVec2 windowSize(250, 150);
+    float newWindowX = screenWidth - windowSize.x - 5;
+    // Define a posição Y
+    float newWindowY = 450;
     // Configura a posição e o tamanho da janela
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(windowX, windowY), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(newWindowX, newWindowY), ImGuiCond_FirstUseEver);
     ImGui::Begin("Janela");
     ImGui::Text("Variaveis das janelas:");
     {
@@ -510,7 +514,12 @@ void Window::onPaintUI() {
   }
 
   {
-
+    ImVec2 windowSize(160, 60);
+    float newWindowX = 5;
+    // Define a posição Y
+    float newWindowY = 75;
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(newWindowX, newWindowY), ImGuiCond_FirstUseEver);
     ImGui::Begin("Camera");
     if (ImGui::Button("Resetar a camera")) {
       m_camera.reset();
@@ -519,7 +528,14 @@ void Window::onPaintUI() {
   }
 
   {
-  // Iniciando uma nova janela ImGui
+    ImVec2 windowSize(200, 100);
+    float newWindowX = 5;
+    // Define a posição Y
+    float newWindowY = 140;
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(newWindowX, newWindowY), ImGuiCond_FirstUseEver);
+
+    // Iniciando uma nova janela ImGui
     ImGui::Begin("Balloon Status");
 
     // Obtendo a posição do balloon
@@ -529,8 +545,17 @@ void Window::onPaintUI() {
     ImGui::Text("Balloon Position:");
     ImGui::Text("X: %.2f, Y: %.2f, Z: %.2f", balloonPosition.x, balloonPosition.y, balloonPosition.z);
 
-    // Mostrando a tiltSpeed do balloon
-    ImGui::Text("Balloon Tilt Speed: %.2f", m_balloon_tiltSpeed);
+    ImGui::Text("Movimento Balão:");
+
+    if (ImGui::RadioButton("Anti-horário", m_movimento == 1)) {
+    m_movimento = 1;
+    // Lógica adicional quando "Horário" é selecionado
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Horário", m_movimento == -1)) {
+      m_movimento = -1;
+      // Lógica adicional quando "Anti-horário" é selecionado
+    }
 
     ImGui::End();
   }
@@ -572,29 +597,53 @@ void Window::updateBalloonSpeed() {
    && m_balloon.m_position.z < 5.0f
    && m_balloon.m_position.x > -0.5f
    && m_balloon.m_position.x < 0.5f) {
-    m_balloon_dollySpeed = 0.5f;
+    m_balloon_dollySpeed = m_movimento * 0.5f;
     m_balloon_truckSpeed = 0.0f;
-   }
-  if (m_balloon.m_position.z >= 5.0f
-   && m_balloon.m_position.x < 5.0f) {
-    m_balloon_dollySpeed = 0.0f;
-    m_balloon_truckSpeed = -0.05f;
-   }
-  if (m_balloon.m_position.z > -5.0f
-   && m_balloon.m_position.x >= 5.0f) {
-    m_balloon_dollySpeed = -0.5f;
-    m_balloon_truckSpeed = 0.0f;
-   }
-  if (m_balloon.m_position.z <= -5.0f
-   && m_balloon.m_position.x > -5.0f) {
-    m_balloon_dollySpeed = 0.0f;
-    m_balloon_truckSpeed = 0.05f;
-   }
-  if (m_balloon.m_position.z < 5.0f
-   && m_balloon.m_position.x <= -5.0f) {
-    m_balloon_dollySpeed = 0.5f;
-    m_balloon_truckSpeed = 0.0f;
-   }
+  }
+  if (m_movimento == 1) {
+    if (m_balloon.m_position.z >= 5.0f
+     && m_balloon.m_position.x < 5.0f) {
+      m_balloon_dollySpeed = 0.0f;
+      m_balloon_truckSpeed = -0.05f;
+    }
+    if (m_balloon.m_position.z > -5.0f
+     && m_balloon.m_position.x >= 5.0f) {
+      m_balloon_dollySpeed = -0.5f;
+      m_balloon_truckSpeed = 0.0f;
+    }
+    if (m_balloon.m_position.z <= -5.0f
+     && m_balloon.m_position.x > -5.0f) {
+      m_balloon_dollySpeed = 0.0f;
+      m_balloon_truckSpeed = 0.05f;
+    }
+    if (m_balloon.m_position.z < 5.0f
+     && m_balloon.m_position.x <= -5.0f) {
+      m_balloon_dollySpeed = 0.5f;
+      m_balloon_truckSpeed = 0.0f;
+    }
+  } else {
+    if (m_balloon.m_position.z >= 5.0f
+     && m_balloon.m_position.x > -5.0f) {
+      m_balloon_dollySpeed = 0.0f;
+      m_balloon_truckSpeed = 0.05f;
+    }
+    if (m_balloon.m_position.z < 5.0f
+     && m_balloon.m_position.x >= 5.0f) {
+      m_balloon_dollySpeed = 0.5f;
+      m_balloon_truckSpeed = 0.0f;
+    }
+    if (m_balloon.m_position.z <= -5.0f
+     && m_balloon.m_position.x < 5.0f) {
+      m_balloon_dollySpeed = 0.0f;
+      m_balloon_truckSpeed = -0.05f;
+    }
+    if (m_balloon.m_position.z > -5.0f
+     && m_balloon.m_position.x <= -5.0f) {
+      m_balloon_dollySpeed = -0.5f;
+      m_balloon_truckSpeed = 0.0f;
+    }
+  }
+  
 
   if (m_balloon.m_position.y > 3.5f) {
     m_balloon_tiltSpeed = m_balloon_tiltSpeed * -1;
