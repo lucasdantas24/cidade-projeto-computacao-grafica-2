@@ -497,12 +497,12 @@ void Window::onPaintUI() {
 
     if (ImGui::RadioButton("Anti-horário", m_movimento == 1)) {
     m_movimento = 1;
-    // Lógica adicional quando "Horário" é selecionado
+    
     }
     ImGui::SameLine();
     if (ImGui::RadioButton("Horário", m_movimento == -1)) {
       m_movimento = -1;
-      // Lógica adicional quando "Anti-horário" é selecionado
+      
     }
 
     ImGui::End();
