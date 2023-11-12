@@ -169,8 +169,6 @@ void Window::onCreate() {
   m_janela.loadObj(assetsPath + "box.obj");
   m_janela.setupVAO(m_program);
 
-  m_car.loadObj(assetsPath + "Dodge_Charger_Low.obj");
-  m_car.setupVAO(m_program);
   // Get location of uniform variables
   m_viewMatrixLocation = abcg::glGetUniformLocation(m_program, "viewMatrix");
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
@@ -398,24 +396,6 @@ void Window::onPaint() {
 
   abcg::glBindVertexArray(0);
 
-  glm::mat4 modelMatrix{1.0f};
-  modelMatrix = glm::translate(modelMatrix, m_car.m_position);
-  modelMatrix = glm::scale(modelMatrix, glm::vec3(0.3f));
-
-  glm::vec3 originalDirection{0.0f, 0.0f, 1.0f};
-  glm::vec3 currentDirection = glm::normalize(m_car.m_direction);
-  float angle = acos(glm::dot(originalDirection, currentDirection));
-  glm::vec3 axisOfRotation = glm::cross(originalDirection, currentDirection);
-
-  // Aplicar a rotação
-  if (glm::length(axisOfRotation) != 0) {
-    modelMatrix = glm::rotate(modelMatrix, angle, axisOfRotation);
-  }
-
-  abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
-  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
-  m_car.render();
-
   // Draw ground
   m_ground.paint();
 
@@ -546,30 +526,9 @@ void Window::onDestroy() {
 void Window::onUpdate() {
   auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
 
-  Window::updateCar(deltaTime);
-
   // Update LookAt camera
   m_camera.dolly(m_dollySpeed * deltaTime);
   m_camera.truck(m_truckSpeed * deltaTime);
   m_camera.pan(m_panSpeed * deltaTime);
   m_camera.tilt(m_tiltSpeed * deltaTime);
-}
-
-void Window::updateCar(float deltaTime) {
-  // Verifique se o carro está em um cruzamento
-  if (Window::isAtCrossRoad(m_car.m_position)) {
-    m_car.pan(-1.0f * deltaTime);
-  }
-
-  // Mova o carro para frente
-  m_car.dolly(-0.5f * deltaTime);
-}
-
-bool Window::isAtCrossRoad(glm::vec3 position) {
-
-  if (glm::distance(m_car.m_position, glm::vec3(0.0f, 0.1f, 0.0f)) < 0.5f) {
-    return true;
-  }
-
-  return false;
 }
