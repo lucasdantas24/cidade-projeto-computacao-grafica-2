@@ -445,11 +445,10 @@ void Window::onPaintUI() {
     ImGui::Begin("Predios");
     // Original sliders
     {
-      ImGui::PushItemWidth(m_viewportSize.x - 25);
-      ImGui::SliderInt(" ", &m_seed, 0, 100, "Seed: %d");
-      ImGui::PopItemWidth();
-    }
+      ImGui::SliderInt("Seed", &m_seed, 0, 100, "Seed: %d");
 
+      ImGui::SliderInt("Predio", &num_building, 0, 15, "Numero de predios: %d");
+    }
     // Checkbox to toggle randomization
     if (ImGui::Checkbox("Aleatorizando", &isRandomizing)) {
       if (isRandomizing) {
@@ -486,7 +485,7 @@ void Window::onPaintUI() {
     // Editar a cor do predio
 
     ImGui::Text("Cor dos predios:");
-    ImGui::ColorEdit3("clear color", m_clearColor.data());
+    ImGui::ColorEdit3("Escolha a COR", m_clearColor.data());
 
     ImGui::End();
   }
