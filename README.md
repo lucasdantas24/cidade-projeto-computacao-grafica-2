@@ -1,12 +1,27 @@
 # Sampa City - Projeto em 3D
 
-O **Sampa City** é um projeto em 3D que simula a construção de uma cidade com prédios representados por cubos. A cidade é gerada de forma procedural, podendo ser alterada com base em uma semente específica. Os prédios são coloridos e mudam de cor dinamicamente. Além disso, há a opção de clicar em um botão de aleatorização, que troca automaticamente as sementes, alterando as posições e tamanhos dos prédios.
+O **Sampa City** é um projeto em 3D que simula a construção de uma cidade com prédios representados por cubos. A cidade é gerada de forma procedural, podendo ser alterada com base em uma semente específica. Os prédios são coloridos, tendo a opção de gerar cores aleatoriamente ou definir uma única cor para todos os prédios. Além disso, há a opção de clicar em um botão de aleatorização, que troca automaticamente as sementes, alterando as posições e tamanhos dos prédios. É possível definir o número de prédios que aparecem em cada quadrante. Além disso, podemos controlar as janelas dos prédios, mudando largura, profundidade e offset da janela, além de alterar se a mesma está ligada ou desligada. Há também um balão, que se move ao redor da cidade, podendo ser esse movimento horário ou anti-horário.
 
 # Link WEB
-O link web se encontra aqui
+O link web se encontra [aqui](https://rodrigohisashi.github.io/cidade-projeto-computacao-grafica/sampa/).
+
+# Controles
+
+É possível controlar a câmera através do teclado:
+
+- Arrow Up = Subir câmera
+- Arrow Down = Descer câmera
+- Arrow Left / A = Girar câmera para esquerda
+- Arrow Right / D = Girar cãmera para direita
+- Q = Mover câmera para esquerda
+- E = Mover câmera para direita
 
 
-## Classes Principais
+# Descrição da Implementação
+
+Temos as classes \`Balloon\`, \`Window\`, \`Window\`
+
+
 
 ### \`Window.cpp\`
 
@@ -40,10 +55,6 @@ Verifica se uma nova posição é válida, evitando sobreposições.
 
 Configurações iniciais, criação de shaders, e inicialização de buffers e objetos.
 
-#### \`loadModelFromFile(std::string_view path)\`
-
-Carrega modelos 3D de um arquivo.
-
 #### \`onPaint()\`
 
 Renderiza a cidade, ajustando posições, tamanhos e cores dos prédios. Também renderiza um carro e o solo.
@@ -63,14 +74,6 @@ Limpeza de recursos OpenGL ao fechar a aplicação.
 #### \`onUpdate()\`
 
 Atualizações lógicas, incluindo movimento do carro.
-
-#### \`updateCar(float deltaTime)\`
-
-Atualiza a posição do carro.
-
-#### \`isAtCrossRoad(glm::vec3 position)\`
-
-Verifica se o carro está em um cruzamento.
 
 ## Outras Classes
 

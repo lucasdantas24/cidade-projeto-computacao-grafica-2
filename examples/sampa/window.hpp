@@ -4,7 +4,7 @@
 #include "abcgOpenGL.hpp"
 
 #include "camera.hpp"
-#include "ballon.hpp"
+#include "balloon.hpp"
 #include "ground.hpp"
 #include "predio.hpp"
 #include <chrono>
@@ -43,7 +43,7 @@ private:
   float m_panSpeed{};
   float m_tiltSpeed{};
   int num_building;
-  Ballon m_balloon;
+  Balloon m_balloon;
   float m_balloon_dollySpeed{};
   float m_balloon_truckSpeed{};
   float m_balloon_tiltSpeed{-0.01f};

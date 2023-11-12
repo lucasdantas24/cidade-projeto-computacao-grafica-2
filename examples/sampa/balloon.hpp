@@ -1,10 +1,10 @@
-#ifndef BALLON_HPP_
-#define BALLON_HPP_
+#ifndef BALLOON_HPP_
+#define BALLOON_HPP_
 
 #include "abcgOpenGL.hpp"
 #include "predio.hpp"
 
-class Ballon {
+class Balloon {
 public:
 
   // Funções de renderização

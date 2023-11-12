@@ -1,4 +1,4 @@
-#include "ballon.hpp"
+#include "balloon.hpp"
 
 #include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp>
@@ -11,7 +11,7 @@ template <> struct std::hash<Vertex> {
   }
 };
 
-void Ballon::createBuffers() {
+void Balloon::createBuffers() {
   // Delete previous buffers
   abcg::glDeleteBuffers(1, &m_EBO);
   abcg::glDeleteBuffers(1, &m_VBO);
@@ -33,7 +33,7 @@ void Ballon::createBuffers() {
   abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void Ballon::loadObj(std::string_view path, bool standardize) {
+void Balloon::loadObj(std::string_view path, bool standardize) {
   tinyobj::ObjReader reader;
 
   if (!reader.ParseFromFile(path.data())) {
@@ -85,13 +85,13 @@ void Ballon::loadObj(std::string_view path, bool standardize) {
   }
 
   if (standardize) {
-    Ballon::standardize();
+    Balloon::standardize();
   }
 
   createBuffers();
 }
 
-void Ballon::render(int numTriangles) const {
+void Balloon::render(int numTriangles) const {
   abcg::glBindVertexArray(m_VAO);
 
   auto const numIndices{(numTriangles < 0) ? m_indices.size()
@@ -102,7 +102,7 @@ void Ballon::render(int numTriangles) const {
   abcg::glBindVertexArray(0);
 }
 
-void Ballon::setupVAO(GLuint program) {
+void Balloon::setupVAO(GLuint program) {
   // Release previous VAO
   abcg::glDeleteVertexArrays(1, &m_VAO);
 
@@ -128,7 +128,7 @@ void Ballon::setupVAO(GLuint program) {
   abcg::glBindVertexArray(0);
 }
 
-void Ballon::standardize() {
+void Balloon::standardize() {
   // Center to origin and normalize largest bound to [-1, 1]
 
   // Get bounds
@@ -147,13 +147,13 @@ void Ballon::standardize() {
   }
 }
 
-void Ballon::destroy() const {
+void Balloon::destroy() const {
   abcg::glDeleteBuffers(1, &m_EBO);
   abcg::glDeleteBuffers(1, &m_VBO);
   abcg::glDeleteVertexArrays(1, &m_VAO);
 }
 
-void Ballon::dolly(float speed) {
+void Balloon::dolly(float speed) {
   // Compute forward vector (view direction)
   auto const forward{glm::normalize(m_position - m_direction)};
 
@@ -163,7 +163,7 @@ void Ballon::dolly(float speed) {
   
 }
 
-void Ballon::truck(float speed) {
+void Balloon::truck(float speed) {
   // Compute forward vector (view direction)
   auto const forward{glm::normalize(m_position - m_direction)};
   // Compute vector to the left
@@ -174,8 +174,7 @@ void Ballon::truck(float speed) {
   m_direction -= left * speed;
 }
 
-void Ballon::tilt(float speed) {
-  glm::vec3 viewDirection = glm::normalize(m_position - m_direction);
+void Balloon::tilt(float speed) {
 
   // Move camera up and down
   m_position += m_up * speed;
