@@ -8,6 +8,9 @@ public:
   void create(GLuint program);
   void paint();
   void destroy();
+  void drawGround(int offsetX, int offsetZ);
+  void drawRoundabout(int x, int z);
+  void drawStreet(int x, int z);
 
 private:
   GLuint m_VAO{};
