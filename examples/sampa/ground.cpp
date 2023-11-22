@@ -32,13 +32,17 @@ void Ground::create(GLuint program) {
 }
 
 void Ground::paint() {
-  abcg::glBindVertexArray(m_VAO);
+  glBindVertexArray(m_VAO);
 
   // Draw the original ground
   drawGround(0, 0);
 
   // Draw the ground to the right
+  drawGround(-1, 0);
+  // Draw the ground to the right
   drawGround(1, 0);
+  // Draw the ground to the bottom
+  drawGround(0, -1);
 
   // Draw the ground to the bottom
   drawGround(0, 1);
@@ -46,9 +50,15 @@ void Ground::paint() {
   // Draw the ground diagonally down to the right
   drawGround(1, 1);
 
-  // Draw the ground diagonally down to the right
+  // Draw the ground diagonally down to the left
+  drawGround(-1, 1);
 
-  abcg::glBindVertexArray(0);
+  drawGround(1, -1);
+
+  // Draw the ground diagonally up to the left
+  drawGround(-1, -1);
+
+  glBindVertexArray(0);
 }
 
 void Ground::drawGround(int offsetX, int offsetZ) {
