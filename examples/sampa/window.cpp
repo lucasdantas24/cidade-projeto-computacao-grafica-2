@@ -136,12 +136,24 @@ Window::generateRandomBuildingPositions(int numBuildings, int seed, float a,
 
 bool Window::isPositionValid(const std::vector<glm::vec3> &positions,
                              const glm::vec3 &newPosition, float radius) {
+
+  double integralX;
+  double fractionalX = modf(newPosition.x, &integralX);
+  int xPosition = (int) integralX;
+  if (fractionalX > 0.5) xPosition++;
+  double integralZ;
+  double fractionalZ = modf(newPosition.z, &integralZ);
+  int zPosition = (int) integralZ;
+  if (fractionalZ > 0.5) zPosition++;
+  auto const isCenter = (newPosition.z == 0 || newPosition.x == 0);
+  auto const isBorder = (zPosition % 5 == 0 || xPosition % 5 == 0);
+  bool valid = isCenter || isBorder ? false : true;
   for (const auto &position : positions) {
     if (glm::distance(newPosition, position) < 2 * radius) {
-      return false;
+      valid = false;
     }
   }
-  return true;
+  return valid;
 }
 
 auto lastTime = std::chrono::steady_clock::now();
@@ -176,7 +188,7 @@ void Window::onCreate() {
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
-  num_building = 15;
+  num_building = 540;
   // create vector
   // VARIAVEIS DA JANELA
 
@@ -276,27 +288,13 @@ void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
 void Window::onPaint() {
 
   building_positions = generateRandomBuildingPositions(
-      num_building, m_seed, -4.25, -0.75, -4.25, -0.75);
+      num_building, m_seed, -15.0f, 15.0f, -15.0f, 15.0f);
 
-  std::vector<std::vector<glm::vec3>> additional_building_positions = {
-      generateRandomBuildingPositions(num_building, m_seed, 4.25, 0.75, 4.25,
-                                      0.75),
-      generateRandomBuildingPositions(num_building, m_seed, -4.25, -0.75, 4.25,
-                                      0.75),
-      generateRandomBuildingPositions(num_building, m_seed, 4.25, 0.75, -4.25,
-                                      -0.75),
-      generateRandomBuildingPositions(num_building, m_seed, 5.25, 0.75, -5.25,
-                                      -0.75)};
-
-  for (const auto &v : additional_building_positions) {
-    building_positions.insert(building_positions.end(), v.begin(), v.end());
-  }
-
-  num_andares_por_predio = gerarAndaresPorPredio(num_building * 4, m_seed);
-  num_largura = gerarLarguraProfundidadeAleatorio(num_building * 4, m_seed);
+  num_andares_por_predio = gerarAndaresPorPredio(num_building, m_seed);
+  num_largura = gerarLarguraProfundidadeAleatorio(num_building, m_seed);
   num_profundidade =
-      gerarLarguraProfundidadeAleatorio(num_building * 4, m_seed);
-  cores_aleatorias = gerarCoresAleatorias(num_building * 4);
+      gerarLarguraProfundidadeAleatorio(num_building, m_seed);
+  cores_aleatorias = gerarCoresAleatorias(num_building);
   // Clear color buffer and depth buffer
   abcg::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -316,7 +314,7 @@ void Window::onPaint() {
   auto const modelMatrixLoc{
       abcg::glGetUniformLocation(m_program, "modelMatrix")};
 
-  for (int j = 0; j < num_building * 4; j++) {
+  for (int j = 0; j < num_building; j++) {
     for (int i = 0; i < num_andares_por_predio.at(j); i++) {
       glm::mat4 modelMatrix{1.0f};
       glm::vec3 posicao_predio =
@@ -387,7 +385,7 @@ void Window::onPaintUI() {
     {
       ImGui::SliderInt("Seed", &m_seed, 0, 100, "Seed: %d");
 
-      ImGui::SliderInt("Predio", &num_building, 0, 15, "Numero de predios: %d");
+      ImGui::SliderInt("Predio", &num_building, 0, 540, "Numero de predios: %d");
     }
     // Checkbox to toggle randomization
     if (ImGui::Checkbox("Aleatorizando", &isRandomizing)) {

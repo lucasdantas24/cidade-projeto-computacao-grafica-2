@@ -32,52 +32,31 @@ void Ground::create(GLuint program) {
 }
 
 void Ground::paint() {
-  glBindVertexArray(m_VAO);
+  abcg::glBindVertexArray(m_VAO);
 
-  // Draw the original ground
-  drawGround(0, 0);
-
-  // Draw the ground to the right
-  drawGround(-1, 0);
-  // Draw the ground to the right
-  drawGround(1, 0);
-  // Draw the ground to the bottom
-  drawGround(0, -1);
-
-  // Draw the ground to the bottom
-  drawGround(0, 1);
-
-  // Draw the ground diagonally down to the right
-  drawGround(1, 1);
-
-  // Draw the ground diagonally down to the left
-  drawGround(-1, 1);
-
-  drawGround(1, -1);
-
-  // Draw the ground diagonally up to the left
-  drawGround(-1, -1);
-
-  glBindVertexArray(0);
-}
-
-void Ground::drawGround(int offsetX, int offsetZ) {
-  auto const N{5};
+  // Draw a grid of 2N+1 x 2N+1 tiles on the xz plane, centered around the
+  // origin
+  auto const N{15};
   for (auto const z : iter::range(-N, N + 1)) {
     for (auto const x : iter::range(-N, N + 1)) {
+      // Set model matrix as a translation matrix
       glm::mat4 model{1.0f};
-      model = glm::translate(model, glm::vec3(x + offsetX * (2 * N + 1), 0.0f,
-                                              z + offsetZ * (2 * N + 1)));
+      model = glm::translate(model, glm::vec3(x, 0.0f, z));
       abcg::glUniformMatrix4fv(m_modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
 
+      // Set color (light gray for the rest, dark gray for border and center
+      // cross)
       auto const isCenter = (z == 0 || x == 0);
-      auto const isBorder = (z == N || z == -N || x == N || x == -N);
+      auto const isBorder = (z == N || z == -N || x == N || x == -N ||
+                             z % 5 == 0 || x % 5 == 0);
       auto const gray = isCenter || isBorder ? 0.2f : 0.8f;
       abcg::glUniform4f(m_colorLoc, gray, gray, gray, 1.0f);
 
       abcg::glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
   }
+
+  abcg::glBindVertexArray(0);
 }
 
 void Ground::destroy() {
