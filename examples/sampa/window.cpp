@@ -156,6 +156,24 @@ bool Window::isPositionValid(const std::vector<glm::vec3> &positions,
   return valid;
 }
 
+void Window::loadPredio(std::string_view path) {
+  auto const assetsPath{abcg::Application::getAssetsPath()};
+
+  m_predio.destroy();
+
+  m_predio.loadDiffuseTexture(assetsPath + "pattern.png");
+  m_predio.loadObj(path);
+  m_predio.setupVAO(m_program);
+  m_trianglesToDraw = m_predio.getNumTriangles();
+
+  // Use material properties from the loaded model
+  m_Ka = m_predio.getKa();
+  m_Kd = m_predio.getKd();
+  m_Ks = m_predio.getKs();
+  m_shininess = m_predio.getShininess();
+}
+
+
 auto lastTime = std::chrono::steady_clock::now();
 void Window::onCreate() {
   auto const &assetsPath{abcg::Application::getAssetsPath()};
@@ -174,8 +192,8 @@ void Window::onCreate() {
 
   m_ground.create(m_program);
 
-  m_predio.loadObj(assetsPath + "box.obj");
-  m_predio.setupVAO(m_program);
+  loadPredio(assetsPath + "box.obj");
+  m_mappingMode = 3;
 
   m_janela.loadObj(assetsPath + "box.obj");
   m_janela.setupVAO(m_program);
@@ -286,6 +304,35 @@ void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
 }
 
 void Window::onPaint() {
+  abcg::glUseProgram(m_program);
+
+  // Get location of uniform variables
+  auto const viewMatrixLoc{abcg::glGetUniformLocation(m_program, "viewMatrix")};
+  auto const projMatrixLoc{abcg::glGetUniformLocation(m_program, "projMatrix")};
+  auto const modelMatrixLoc{abcg::glGetUniformLocation(m_program, "modelMatrix")};
+  auto const normalMatrixLoc{
+      abcg::glGetUniformLocation(m_program, "normalMatrix")};
+  auto const lightDirLoc{
+      abcg::glGetUniformLocation(m_program, "lightDirWorldSpace")};
+  auto const shininessLoc{abcg::glGetUniformLocation(m_program, "shininess")};
+  auto const IaLoc{abcg::glGetUniformLocation(m_program, "Ia")};
+  auto const IdLoc{abcg::glGetUniformLocation(m_program, "Id")};
+  auto const IsLoc{abcg::glGetUniformLocation(m_program, "Is")};
+  auto const KaLoc{abcg::glGetUniformLocation(m_program, "Ka")};
+  auto const KdLoc{abcg::glGetUniformLocation(m_program, "Kd")};
+  auto const KsLoc{abcg::glGetUniformLocation(m_program, "Ks")};
+  auto const diffuseTexLoc{abcg::glGetUniformLocation(m_program, "diffuseTex")};
+  auto const mappingModeLoc{abcg::glGetUniformLocation(m_program, "mappingMode")};
+
+  // Set uniform variables that have the same value for every model
+  abcg::glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, &m_camera.getViewMatrix()[0][0]);
+  abcg::glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE, &m_camera.getProjMatrix()[0][0]);
+  abcg::glUniform1i(diffuseTexLoc, 0);
+  abcg::glUniform1i(mappingModeLoc, m_mappingMode);
+
+  abcg::glUniform4fv(IaLoc, 1, &m_Ia.x);
+  abcg::glUniform4fv(IdLoc, 1, &m_Id.x);
+  abcg::glUniform4fv(IsLoc, 1, &m_Is.x);
 
   building_positions = generateRandomBuildingPositions(
       num_building, m_seed, -15.0f, 15.0f, -15.0f, 15.0f);
@@ -300,7 +347,7 @@ void Window::onPaint() {
 
   abcg::glViewport(0, 0, m_viewportSize.x, m_viewportSize.y);
 
-  abcg::glUseProgram(m_program);
+  
 
   // Set uniform variables for viewMatrix and projMatrix
   // These matrices are used for every scene object
@@ -310,9 +357,6 @@ void Window::onPaint() {
                            &m_camera.getProjMatrix()[0][0]);
 
   abcg::glBindVertexArray(m_VAO);
-
-  auto const modelMatrixLoc{
-      abcg::glGetUniformLocation(m_program, "modelMatrix")};
 
   for (int j = 0; j < num_building; j++) {
     for (int i = 0; i < num_andares_por_predio.at(j); i++) {

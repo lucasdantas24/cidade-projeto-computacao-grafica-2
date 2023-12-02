@@ -23,6 +23,7 @@ protected:
                    float buildingDepth, int floor, float windowWidth,
                    float windowDepth, float windowOffsetX, float windowOffsetZ);
   void updateBalloonSpeed();
+  void loadPredio(std::string_view path);
 
 private:
   glm::ivec2 m_viewportSize{};
@@ -86,6 +87,25 @@ private:
   std::vector<glm::vec4> gerarCoresAleatorias(int numBuildings);
 
   bool isRandomizing{false};
+
+  int m_trianglesToDraw{};
+
+  std::vector<GLuint> m_programs;
+  int m_currentProgramIndex{};
+
+  // Mapping mode
+  // 0: triplanar; 1: cylindrical; 2: spherical; 3: from mesh
+  int m_mappingMode{};
+
+  // Light and material properties
+  glm::vec4 m_lightDir{-1.0f, -1.0f, -1.0f, 0.0f};
+  glm::vec4 m_Ia{1.0f};
+  glm::vec4 m_Id{1.0f};
+  glm::vec4 m_Is{1.0f};
+  glm::vec4 m_Ka{};
+  glm::vec4 m_Kd{};
+  glm::vec4 m_Ks{};
+  float m_shininess{};
 };
 
 #endif
