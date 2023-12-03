@@ -7,6 +7,8 @@
 
 void Predio::create(Model m_model, const std::string assetsPath) {
 
+  m_janela.create(m_janela_model, assetsPath);
+
   PredioProgram = abcg::createOpenGLProgram(
       {{.source = assetsPath + "predio.vert", .stage = abcg::ShaderStage::Vertex},
        {.source = assetsPath + "predio.frag",
@@ -37,7 +39,8 @@ void Predio::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
 }
 
 void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, int m_seed, int num_building,
-                  std::array<float, 4> m_clearColor, bool cores_random) {
+                  std::array<float, 4> m_clearColor, bool cores_random, float windowWidth, float windowDepth,
+                  float windowOffsetX, float windowOffsetZ, bool janelas_acesas) {
 
   abcg::glUseProgram(PredioProgram);
 
@@ -86,6 +89,7 @@ void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, in
 
   for (int j = 0; j < num_building; j++) {
     for (int i = 0; i < num_andares_por_predio.at(j); i++) {
+      abcg::glUseProgram(PredioProgram);
       glm::mat4 modelMatrix{1.0f};
       glm::vec3 posicao_predio =
           glm::vec3(building_positions.at(j).x, calcularValorY(i),
@@ -110,8 +114,8 @@ void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, in
       m_model.renderTexture(&m_indices, &m_VAO, diffuseTexture);
       // Render windows on each floor
 
-      //fazerJanela(posicao_predio, num_largura.at(j), num_profundidade.at(j), i,
-      //            windowWidth, windowDepth, windowOffsetX, windowOffsetZ);
+      m_janela.paint(viewMatrix, projMatrix, m_janela_model, posicao_predio, num_largura.at(j), num_profundidade.at(j), i,
+                  windowWidth, windowDepth, windowOffsetX, windowOffsetZ, janelas_acesas);
     }
   }
 }
@@ -229,3 +233,4 @@ bool Predio::isPositionValid(const std::vector<glm::vec3> &positions,
 }
 
 float Predio::calcularValorY(int i) { return 0.6f * (i + 1); }
+

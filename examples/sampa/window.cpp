@@ -75,8 +75,6 @@ void Window::onCreate() {
 
   m_predio.create(m_model, assetsPath);
 
-  m_janela.create(m_model, assetsPath);
-
   m_balloon.loadObj(assetsPath + "Air_Balloon.obj");
   m_balloon.setupVAO(m_program);
 
@@ -133,54 +131,6 @@ void Window::onCreate() {
   abcg::glBindVertexArray(0);
 }
 
-void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
-                         float buildingDepth, int floor, float windowWidth,
-                         float windowDepth, float windowOffsetX,
-                         float windowOffsetZ) {
-
-  auto const modelMatrixLoc{
-      abcg::glGetUniformLocation(m_program, "modelMatrix")};
-
-  // Calculate window position
-  glm::vec3 windowPosition = buildingPosition;
-  windowPosition.y += floor * 0.07f; // Adjust window height based on floor
-  windowPosition.x += windowOffsetX;
-  windowPosition.z += windowOffsetZ;
-
-  // Check if window position is inside the building's volume
-  if (windowPosition.x < buildingPosition.x - buildingWidth / 2.0f ||
-      windowPosition.x > buildingPosition.x + buildingWidth / 2.0f ||
-      windowPosition.z < buildingPosition.z - buildingDepth / 2.0f ||
-      windowPosition.z > buildingPosition.z + buildingDepth / 2.0f) {
-    // Skip rendering the window if it's outside the building
-    return;
-  }
-
-  // Scale the window
-  glm::mat4 modelMatrix{1.0f};
-  modelMatrix = glm::translate(modelMatrix, windowPosition);
-  modelMatrix =
-      glm::scale(modelMatrix, glm::vec3(windowWidth, 0.5f, windowDepth));
-
-  glm::vec4 windowColor;
-
-  if (janelas_acesas) {
-    windowColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f); // Example window color
-  } else {
-    windowColor = glm::vec4(0.0f, 0.0f, 0.0f,
-                            1.0f); // Black color when janelas_acesas is false
-  }
-
-  abcg::glUniform4f(m_colorLocation, windowColor[0], windowColor[1],
-                    windowColor[2], windowColor[3]);
-
-  // Update model matrix for window
-  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
-
-  // Render the window cube
-  m_janela.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
-}
-
 void Window::onPaint() {
 
   abcg::glUseProgram(m_program);
@@ -213,7 +163,8 @@ void Window::onPaint() {
 
   renderSkybox();
 
-  m_predio.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model, m_seed, num_building, m_clearColor, cores_random);
+  m_predio.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model, m_seed, num_building, m_clearColor, cores_random,
+   windowWidth, windowDepth, windowOffsetX, windowOffsetZ, janelas_acesas);
 
   abcg::glUseProgram(0);
 }

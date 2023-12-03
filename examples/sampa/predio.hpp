@@ -5,6 +5,7 @@
 
 #include "model.hpp"
 #include <chrono>
+#include "janela.hpp"
 
 class Predio {
 public:
@@ -16,6 +17,9 @@ public:
   GLuint m_VBO{};
   GLuint m_EBO{};
   GLuint PredioProgram{};
+
+  Janela m_janela;
+  Model m_janela_model;
 
   GLuint diffuseTexture{};
 
@@ -45,7 +49,8 @@ public:
   std::vector<GLuint> m_indices;
 
   void create(Model m_model, const std::string assetsPath);
-  void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, int m_seed, int num_building, std::array<float, 4> m_clearColor, bool cores_random);
+  void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, int m_seed, int num_building, std::array<float, 4> m_clearColor, bool cores_random,
+            float windowWidth, float windowDepth, float windowOffsetX, float windowOffsetZ, bool janelas_acesas);
   void update(glm::vec4 lightColorParam, glm::vec3 LightPosParam);
   void destroy();
 

@@ -37,7 +37,10 @@ public:
   std::vector<GLuint> m_indices;
 
   void create(Model m_model, const std::string assetsPath);
-  void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model);
+  void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 buildingPosition, float buildingWidth,
+                         float buildingDepth, int floor, float windowWidth,
+                         float windowDepth, float windowOffsetX,
+                         float windowOffsetZ, bool janelas_acesas);
   void update(glm::vec4 lightColorParam, glm::vec3 LightPosParam);
   void destroy();
 };

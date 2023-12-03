@@ -20,9 +20,6 @@ protected:
   void onResize(glm::ivec2 const &size) override;
   void onDestroy() override;
   void onUpdate() override;
-  void fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
-                   float buildingDepth, int floor, float windowWidth,
-                   float windowDepth, float windowOffsetX, float windowOffsetZ);
   void updateBalloonSpeed();
 
 private:
@@ -51,7 +48,6 @@ private:
   int m_movimento{1};
   Ground m_ground;
   Predio m_predio;
-  Janela m_janela;
   Model m_model;
   
   struct PredioJanela {

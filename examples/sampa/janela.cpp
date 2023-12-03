@@ -22,7 +22,7 @@ void Janela::create(Model m_model, const std::string assetsPath) {
 
   JanelaColorLocation = abcg::glGetUniformLocation(JanelaProgram, "color");
 
-  m_model.loadDiffuseTexture(assetsPath + "maps/glass_base.jpg", &diffuseTexture);
+  m_model.loadDiffuseTexture(assetsPath + "maps/pattern.png", &diffuseTexture);
 }
 
 void Janela::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
@@ -32,7 +32,10 @@ void Janela::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
   shininess = 2 * abs(LightPosParam.x);
 }
 
-void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model) {
+void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 buildingPosition, float buildingWidth,
+                         float buildingDepth, int floor, float windowWidth,
+                         float windowDepth, float windowOffsetX,
+                         float windowOffsetZ, bool janelas_acesas) {
 
   abcg::glUseProgram(JanelaProgram);
 
@@ -71,64 +74,42 @@ void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model) {
   abcg::glUniform4fv(KsLoc, 1, &Ks.x);
   abcg::glUniform1f(shininessLoc, shininess);
 
-  // Desenho da parede sul. Notemos que a posição foi escolhida para alinhamento
-  // dos cantos (encontro das paredes)
-  glm::mat4 model{1.0f};
-  model = glm::translate(model, glm::vec3{0.0f, 0.2f, 0.96f});
+  // Calculate window position
+  glm::vec3 windowPosition = buildingPosition;
+  windowPosition.y += floor * 0.07f; // Adjust window height based on floor
+  windowPosition.x += windowOffsetX;
+  windowPosition.z += windowOffsetZ;
 
-  auto modelViewMatrix{glm::mat3(viewMatrix * model)};
-  auto normalMatrix{glm::inverseTranspose(modelViewMatrix)};
-  abcg::glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, &normalMatrix[0][0]);
+  // Check if window position is inside the building's volume
+  if (windowPosition.x < buildingPosition.x - buildingWidth / 2.0f ||
+      windowPosition.x > buildingPosition.x + buildingWidth / 2.0f ||
+      windowPosition.z < buildingPosition.z - buildingDepth / 2.0f ||
+      windowPosition.z > buildingPosition.z + buildingDepth / 2.0f) {
+    // Skip rendering the window if it's outside the building
+    return;
+  }
 
-  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
-  abcg::glUniform4f(JanelaColorLocation, 1.0f, 0.8f, 0.0f, 1.0f);
+  // Scale the window
+  glm::mat4 modelMatrix{1.0f};
+  modelMatrix = glm::translate(modelMatrix, windowPosition);
+  modelMatrix =
+      glm::scale(modelMatrix, glm::vec3(windowWidth, 0.5f, windowDepth));
 
-  m_model.renderTexture(&m_indices, &m_VAO, diffuseTexture);
+  glm::vec4 windowColor;
 
-  // Desenho da parede norte. A posição z tem a mesma lógica da anterior, porém
-  // refletida em relação a origem
-  model = glm::mat4(1.0);
-  model = glm::translate(model, glm::vec3{0.0f, 0.2f, -0.96f});
+  if (janelas_acesas) {
+    windowColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f); // Example window color
+  } else {
+    windowColor = glm::vec4(0.0f, 0.0f, 0.0f,
+                            1.0f); // Black color when janelas_acesas is false
+  }
 
-  modelViewMatrix = glm::mat3(viewMatrix * model);
-  normalMatrix = glm::inverseTranspose(modelViewMatrix);
-  abcg::glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, &normalMatrix[0][0]);
+  abcg::glUniform4f(JanelaColorLocation, windowColor[0], windowColor[1],
+                    windowColor[2], windowColor[3]);
 
-  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
-  abcg::glUniform4f(JanelaColorLocation, 1.0f, 0.8f, 0.0f, 1.0f);
+  // Update model matrix for window
+  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
 
-  m_model.renderTexture(&m_indices, &m_VAO, diffuseTexture);
-
-  // Desenho da parede leste. A lógica da coordenada z das paredes anteriores
-  // foi aplicada na coordenada x dessa parede e também rodamos em -90.0 graus
-  // para formar a parede lateral.
-  model = glm::mat4(1.0);
-  model = glm::translate(model, glm::vec3{0.96f, 0.2f, 0.0f});
-  model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
-
-  modelViewMatrix = glm::mat3(viewMatrix * model);
-  normalMatrix = glm::inverseTranspose(modelViewMatrix);
-  abcg::glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, &normalMatrix[0][0]);
-
-  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
-  abcg::glUniform4f(JanelaColorLocation, 1.0f, 0.8f, 0.0f, 1.0f);
-
-  m_model.renderTexture(&m_indices, &m_VAO, diffuseTexture);
-
-  // Desenho da parede oeste. Mesma lógica da parede anterior para a coordenada
-  // x, porém refletida pela origem.
-  model = glm::mat4(1.0);
-  model = glm::translate(model, glm::vec3{-0.96f, 0.2f, 0.0f});
-  model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
-
-  modelViewMatrix = glm::mat3(viewMatrix * model);
-  normalMatrix = glm::inverseTranspose(modelViewMatrix);
-  abcg::glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, &normalMatrix[0][0]);
-
-  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
-  abcg::glUniform4f(JanelaColorLocation, 1.0f, 0.8f, 0.0f, 1.0f);
-
-  // Renderização feita pela classe Model
   m_model.renderTexture(&m_indices, &m_VAO, diffuseTexture);
   abcg::glUseProgram(0);
 }
