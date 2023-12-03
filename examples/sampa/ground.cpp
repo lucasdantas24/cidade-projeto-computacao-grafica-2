@@ -50,7 +50,7 @@ void Ground::paint() {
       auto const isBorder = (z == N || z == -N || x == N || x == -N ||
                              z % 5 == 0 || x % 5 == 0);
       auto const gray = isCenter || isBorder ? 0.2f : 0.8f;
-      //abcg::glUniform4f(m_colorLoc, gray, gray, gray, 1.0f);
+      abcg::glUniform4f(m_colorLoc, gray, gray, gray, 1.0f);
 
       abcg::glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }

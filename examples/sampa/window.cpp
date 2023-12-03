@@ -183,11 +183,11 @@ void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
 
 void Window::onPaint() {
 
+  abcg::glUseProgram(m_program);
+
   abcg::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   abcg::glViewport(0, 0, m_viewportSize.x, m_viewportSize.y);
-
-  abcg::glUseProgram(m_program);
 
   // Clear color buffer and depth buffer
   abcg::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -201,20 +201,19 @@ void Window::onPaint() {
   abcg::glUniformMatrix4fv(m_projMatrixLocation, 1, GL_FALSE,
                            &m_camera.getProjMatrix()[0][0]);
 
-
-  m_predio.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model, m_seed, num_building, m_clearColor, cores_random);
-
-  //glm::mat4 modelMatrix{1.0f};
-  //modelMatrix = glm::translate(modelMatrix, m_balloon.m_position);
-  //modelMatrix = glm::scale(modelMatrix, glm::vec3(0.8f));
-  //abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
-  //abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-  //m_balloon.render();
+  glm::mat4 modelMatrix{1.0f};
+  modelMatrix = glm::translate(modelMatrix, m_balloon.m_position);
+  modelMatrix = glm::scale(modelMatrix, glm::vec3(0.8f));
+  abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
+  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
+  m_balloon.render();
 
   // Draw ground
   m_ground.paint();
 
   renderSkybox();
+
+  m_predio.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model, m_seed, num_building, m_clearColor, cores_random);
 
   abcg::glUseProgram(0);
 }
