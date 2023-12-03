@@ -3,8 +3,8 @@
 
 #include "abcgOpenGL.hpp"
 
-#include "camera.hpp"
 #include "balloon.hpp"
+#include "camera.hpp"
 #include "ground.hpp"
 #include "predio.hpp"
 #include <chrono>
@@ -106,6 +106,8 @@ private:
   glm::vec4 m_Kd{};
   glm::vec4 m_Ks{};
   float m_shininess{};
+
+  GLuint predio_program{};
 };
 
 #endif

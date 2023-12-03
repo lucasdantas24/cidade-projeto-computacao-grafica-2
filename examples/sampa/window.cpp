@@ -160,12 +160,16 @@ bool Window::isPositionValid(const std::vector<glm::vec3> &positions,
 
 void Window::loadPredio(std::string_view path) {
   auto const assetsPath{abcg::Application::getAssetsPath()};
-
+  predio_program =
+      abcg::createOpenGLProgram({{.source = assetsPath + "texture.vert",
+                                  .stage = abcg::ShaderStage::Vertex},
+                                 {.source = assetsPath + "texture.frag",
+                                  .stage = abcg::ShaderStage::Fragment}});
   m_predio.destroy();
 
-  m_predio.loadDiffuseTexture(assetsPath + "pattern.png");
+  m_predio.loadDiffuseTexture(assetsPath + "maps/brick_base.jpg");
   m_predio.loadObj(path);
-  m_predio.setupVAO(m_program);
+  m_predio.setupVAO(predio_program);
   m_trianglesToDraw = m_predio.getNumTriangles();
 
   // Use material properties from the loaded model
@@ -186,9 +190,9 @@ void Window::onCreate() {
 
   // Create program
   m_program =
-      abcg::createOpenGLProgram({{.source = assetsPath + "texture.vert",
+      abcg::createOpenGLProgram({{.source = assetsPath + "lookat.vert",
                                   .stage = abcg::ShaderStage::Vertex},
-                                 {.source = assetsPath + "texture.frag",
+                                 {.source = assetsPath + "lookat.frag",
                                   .stage = abcg::ShaderStage::Fragment}});
 
   m_ground.create(m_program);
