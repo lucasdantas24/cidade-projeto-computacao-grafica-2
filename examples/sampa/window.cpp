@@ -139,12 +139,14 @@ bool Window::isPositionValid(const std::vector<glm::vec3> &positions,
 
   double integralX;
   double fractionalX = modf(newPosition.x, &integralX);
-  int xPosition = (int) integralX;
-  if (fractionalX > 0.5) xPosition++;
+  int xPosition = (int)integralX;
+  if (fractionalX > 0.5)
+    xPosition++;
   double integralZ;
   double fractionalZ = modf(newPosition.z, &integralZ);
-  int zPosition = (int) integralZ;
-  if (fractionalZ > 0.5) zPosition++;
+  int zPosition = (int)integralZ;
+  if (fractionalZ > 0.5)
+    zPosition++;
   auto const isCenter = (newPosition.z == 0 || newPosition.x == 0);
   auto const isBorder = (zPosition % 5 == 0 || xPosition % 5 == 0);
   bool valid = isCenter || isBorder ? false : true;
@@ -173,7 +175,6 @@ void Window::loadPredio(std::string_view path) {
   m_shininess = m_predio.getShininess();
 }
 
-
 auto lastTime = std::chrono::steady_clock::now();
 void Window::onCreate() {
   auto const &assetsPath{abcg::Application::getAssetsPath()};
@@ -185,9 +186,9 @@ void Window::onCreate() {
 
   // Create program
   m_program =
-      abcg::createOpenGLProgram({{.source = assetsPath + "lookat.vert",
+      abcg::createOpenGLProgram({{.source = assetsPath + "texture.vert",
                                   .stage = abcg::ShaderStage::Vertex},
-                                 {.source = assetsPath + "lookat.frag",
+                                 {.source = assetsPath + "texture.frag",
                                   .stage = abcg::ShaderStage::Fragment}});
 
   m_ground.create(m_program);
@@ -309,7 +310,8 @@ void Window::onPaint() {
   // Get location of uniform variables
   auto const viewMatrixLoc{abcg::glGetUniformLocation(m_program, "viewMatrix")};
   auto const projMatrixLoc{abcg::glGetUniformLocation(m_program, "projMatrix")};
-  auto const modelMatrixLoc{abcg::glGetUniformLocation(m_program, "modelMatrix")};
+  auto const modelMatrixLoc{
+      abcg::glGetUniformLocation(m_program, "modelMatrix")};
   auto const normalMatrixLoc{
       abcg::glGetUniformLocation(m_program, "normalMatrix")};
   auto const lightDirLoc{
@@ -322,11 +324,14 @@ void Window::onPaint() {
   auto const KdLoc{abcg::glGetUniformLocation(m_program, "Kd")};
   auto const KsLoc{abcg::glGetUniformLocation(m_program, "Ks")};
   auto const diffuseTexLoc{abcg::glGetUniformLocation(m_program, "diffuseTex")};
-  auto const mappingModeLoc{abcg::glGetUniformLocation(m_program, "mappingMode")};
+  auto const mappingModeLoc{
+      abcg::glGetUniformLocation(m_program, "mappingMode")};
 
   // Set uniform variables that have the same value for every model
-  abcg::glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, &m_camera.getViewMatrix()[0][0]);
-  abcg::glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE, &m_camera.getProjMatrix()[0][0]);
+  abcg::glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE,
+                           &m_camera.getViewMatrix()[0][0]);
+  abcg::glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE,
+                           &m_camera.getProjMatrix()[0][0]);
   abcg::glUniform1i(diffuseTexLoc, 0);
   abcg::glUniform1i(mappingModeLoc, m_mappingMode);
 
@@ -339,15 +344,12 @@ void Window::onPaint() {
 
   num_andares_por_predio = gerarAndaresPorPredio(num_building, m_seed);
   num_largura = gerarLarguraProfundidadeAleatorio(num_building, m_seed);
-  num_profundidade =
-      gerarLarguraProfundidadeAleatorio(num_building, m_seed);
+  num_profundidade = gerarLarguraProfundidadeAleatorio(num_building, m_seed);
   cores_aleatorias = gerarCoresAleatorias(num_building);
   // Clear color buffer and depth buffer
   abcg::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   abcg::glViewport(0, 0, m_viewportSize.x, m_viewportSize.y);
-
-  
 
   // Set uniform variables for viewMatrix and projMatrix
   // These matrices are used for every scene object
@@ -381,6 +383,10 @@ void Window::onPaint() {
       abcg::glUniform4f(m_colorLocation, cor[0], cor[1], cor[2], cor[3]);
       abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
 
+      abcg::glUniform4fv(KaLoc, 1, &m_Ka.x);
+      abcg::glUniform4fv(KdLoc, 1, &m_Kd.x);
+      abcg::glUniform4fv(KsLoc, 1, &m_Ks.x);
+      abcg::glUniform1f(shininessLoc, m_shininess);
       m_predio.render();
       // Render windows on each floor
 
@@ -429,7 +435,8 @@ void Window::onPaintUI() {
     {
       ImGui::SliderInt("Seed", &m_seed, 0, 100, "Seed: %d");
 
-      ImGui::SliderInt("Predio", &num_building, 0, 540, "Numero de predios: %d");
+      ImGui::SliderInt("Predio", &num_building, 0, 540,
+                       "Numero de predios: %d");
     }
     // Checkbox to toggle randomization
     if (ImGui::Checkbox("Aleatorizando", &isRandomizing)) {
