@@ -66,9 +66,9 @@ void Window::onCreate() {
 
   // Create program
   m_program =
-      abcg::createOpenGLProgram({{.source = assetsPath + "lookat.vert",
+      abcg::createOpenGLProgram({{.source = assetsPath + "main.vert",
                                   .stage = abcg::ShaderStage::Vertex},
-                                 {.source = assetsPath + "lookat.frag",
+                                 {.source = assetsPath + "main.frag",
                                   .stage = abcg::ShaderStage::Fragment}});
 
   m_ground.create(m_program);
