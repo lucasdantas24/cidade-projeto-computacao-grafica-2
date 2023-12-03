@@ -108,6 +108,62 @@ private:
   float m_shininess{};
 
   GLuint predio_program{};
+
+  // Skybox
+  std::string const m_skyShaderName{"skybox"};
+  GLuint m_skyVAO{};
+  GLuint m_skyVBO{};
+  GLuint m_skyProgram{};
+
+  std::array<glm::vec3, 36> const m_skyPositions{{// Front
+                                                  {-10, -10, +10},
+                                                  {+10, -10, +10},
+                                                  {+10, +10, +10},
+                                                  {-10, -10, +10},
+                                                  {+10, +10, +10},
+                                                  {-10, +10, +10},
+                                                  // Back
+                                                  {+10, -10, -10},
+                                                  {-10, -10, -10},
+                                                  {-10, +10, -10},
+                                                  {+10, -10, -10},
+                                                  {-10, +10, -10},
+                                                  {+10, +10, -10},
+                                                  // Right
+                                                  {+10, -10, -10},
+                                                  {+10, +10, -10},
+                                                  {+10, +10, +10},
+                                                  {+10, -10, -10},
+                                                  {+10, +10, +10},
+                                                  {+10, -10, +10},
+                                                  // Left
+                                                  {-10, -10, +10},
+                                                  {-10, +10, +10},
+                                                  {-10, +10, -10},
+                                                  {-10, -10, +10},
+                                                  {-10, +10, -10},
+                                                  {-10, -10, -10},
+                                                  // Top
+                                                  {-10, +10, +10},
+                                                  {+10, +10, +10},
+                                                  {+10, +10, -10},
+                                                  {-10, +10, +10},
+                                                  {+10, +10, -10},
+                                                  {-10, +10, -10},
+                                                  // Bottom
+                                                  {-10, -10, -10},
+                                                  {+10, -10, -10},
+                                                  {+10, -10, +10},
+                                                  {-10, -10, -10},
+                                                  {+10, -10, +10},
+                                                  {-10, -10, +10}}};
+
+  // clang-format on
+
+  void createSkybox();
+  void renderSkybox();
+  void destroySkybox() const;
+  GLuint loadCubeTexture(std::string const &path);
 };
 
 #endif
