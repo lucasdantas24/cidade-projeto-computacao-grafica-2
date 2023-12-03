@@ -6,6 +6,8 @@
 #include "balloon.hpp"
 #include "camera.hpp"
 #include "ground.hpp"
+#include "janela.hpp"
+#include "model.hpp"
 #include "predio.hpp"
 #include <chrono>
 
@@ -18,12 +20,10 @@ protected:
   void onResize(glm::ivec2 const &size) override;
   void onDestroy() override;
   void onUpdate() override;
-  float calcularValorY(int i);
   void fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
                    float buildingDepth, int floor, float windowWidth,
                    float windowDepth, float windowOffsetX, float windowOffsetZ);
   void updateBalloonSpeed();
-  void loadPredio(std::string_view path);
 
 private:
   glm::ivec2 m_viewportSize{};
@@ -51,13 +51,9 @@ private:
   int m_movimento{1};
   Ground m_ground;
   Predio m_predio;
-  Predio m_janela;
-  std::vector<glm::vec3> building_positions;
-  std::vector<int> num_andares_por_predio;
-  std::vector<float> num_largura;
-  std::vector<float> num_profundidade;
-
-  std::vector<glm::vec4> cores_aleatorias;
+  Janela m_janela;
+  Model m_model;
+  
   struct PredioJanela {
     glm::vec3 m_position{};
     glm::vec3 m_rotationAxis{};
@@ -74,28 +70,11 @@ private:
   float windowOffsetZ;
   bool cores_random;
   bool janelas_acesas;
-  std::array<float, 4> m_clearColor{0.906f, 0.910f, 0.918f, 1.0f};
-  bool isPositionValid(const std::vector<glm::vec3> &positions,
-                       const glm::vec3 &newPosition, float radius);
-  std::vector<glm::vec3> generateRandomBuildingPositions(int numBuildings,
-                                                         int seed, float a,
-                                                         float b, float c,
-                                                         float d);
-  std::vector<int> gerarAndaresPorPredio(int num_building, int seed);
-  std::vector<float> gerarLarguraProfundidadeAleatorio(int num_building,
-                                                       int seed);
-  std::vector<glm::vec4> gerarCoresAleatorias(int numBuildings);
+  std::array<float, 4> m_clearColor{0.906f, 0.920f, 0.918f, 1.0f};
 
   bool isRandomizing{false};
 
   int m_trianglesToDraw{};
-
-  std::vector<GLuint> m_programs;
-  int m_currentProgramIndex{};
-
-  // Mapping mode
-  // 0: triplanar; 1: cylindrical; 2: spherical; 3: from mesh
-  int m_mappingMode{};
 
   // Light and material properties
   glm::vec4 m_lightDir{-1.0f, -1.0f, -1.0f, 0.0f};
@@ -116,47 +95,47 @@ private:
   GLuint m_skyProgram{};
 
   std::array<glm::vec3, 36> const m_skyPositions{{// Front
-                                                  {-10, -10, +10},
-                                                  {+10, -10, +10},
-                                                  {+10, +10, +10},
-                                                  {-10, -10, +10},
-                                                  {+10, +10, +10},
-                                                  {-10, +10, +10},
+                                                  {-20, -20, +20},
+                                                  {+20, -20, +20},
+                                                  {+20, +20, +20},
+                                                  {-20, -20, +20},
+                                                  {+20, +20, +20},
+                                                  {-20, +20, +20},
                                                   // Back
-                                                  {+10, -10, -10},
-                                                  {-10, -10, -10},
-                                                  {-10, +10, -10},
-                                                  {+10, -10, -10},
-                                                  {-10, +10, -10},
-                                                  {+10, +10, -10},
+                                                  {+20, -20, -20},
+                                                  {-20, -20, -20},
+                                                  {-20, +20, -20},
+                                                  {+20, -20, -20},
+                                                  {-20, +20, -20},
+                                                  {+20, +20, -20},
                                                   // Right
-                                                  {+10, -10, -10},
-                                                  {+10, +10, -10},
-                                                  {+10, +10, +10},
-                                                  {+10, -10, -10},
-                                                  {+10, +10, +10},
-                                                  {+10, -10, +10},
+                                                  {+20, -20, -20},
+                                                  {+20, +20, -20},
+                                                  {+20, +20, +20},
+                                                  {+20, -20, -20},
+                                                  {+20, +20, +20},
+                                                  {+20, -20, +20},
                                                   // Left
-                                                  {-10, -10, +10},
-                                                  {-10, +10, +10},
-                                                  {-10, +10, -10},
-                                                  {-10, -10, +10},
-                                                  {-10, +10, -10},
-                                                  {-10, -10, -10},
+                                                  {-20, -20, +20},
+                                                  {-20, +20, +20},
+                                                  {-20, +20, -20},
+                                                  {-20, -20, +20},
+                                                  {-20, +20, -20},
+                                                  {-20, -20, -20},
                                                   // Top
-                                                  {-10, +10, +10},
-                                                  {+10, +10, +10},
-                                                  {+10, +10, -10},
-                                                  {-10, +10, +10},
-                                                  {+10, +10, -10},
-                                                  {-10, +10, -10},
+                                                  {-20, +20, +20},
+                                                  {+20, +20, +20},
+                                                  {+20, +20, -20},
+                                                  {-20, +20, +20},
+                                                  {+20, +20, -20},
+                                                  {-20, +20, -20},
                                                   // Bottom
-                                                  {-10, -10, -10},
-                                                  {+10, -10, -10},
-                                                  {+10, -10, +10},
-                                                  {-10, -10, -10},
-                                                  {+10, -10, +10},
-                                                  {-10, -10, +10}}};
+                                                  {-20, -20, -20},
+                                                  {+20, -20, -20},
+                                                  {+20, -20, +20},
+                                                  {-20, -20, -20},
+                                                  {+20, -20, +20},
+                                                  {-20, -20, +20}}};
 
   // clang-format on
 

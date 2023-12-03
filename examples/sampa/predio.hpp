@@ -3,53 +3,64 @@
 
 #include "abcgOpenGL.hpp"
 
-struct Vertex {
-  glm::vec3 position{};
-  glm::vec3 normal{};
-  glm::vec2 texCoord{};
-
-  friend bool operator==(Vertex const &, Vertex const &) = default;
-};
+#include "model.hpp"
+#include <chrono>
 
 class Predio {
 public:
-  void loadDiffuseTexture(std::string_view path);
-  void loadObj(std::string_view path, bool standardize = true);
-  void render(int numTriangles = -1) const;
-  void setupVAO(GLuint program);
-  void destroy();
-
   [[nodiscard]] int getNumTriangles() const {
     return gsl::narrow<int>(m_indices.size()) / 3;
   }
 
-  [[nodiscard]] glm::vec4 getKa() const { return m_Ka; }
-  [[nodiscard]] glm::vec4 getKd() const { return m_Kd; }
-  [[nodiscard]] glm::vec4 getKs() const { return m_Ks; }
-  [[nodiscard]] float getShininess() const { return m_shininess; }
-
-  [[nodiscard]] bool isUVMapped() const { return m_hasTexCoords; }
-
-private:
   GLuint m_VAO{};
   GLuint m_VBO{};
   GLuint m_EBO{};
+  GLuint PredioProgram{};
 
-  glm::vec4 m_Ka{};
-  glm::vec4 m_Kd{};
-  glm::vec4 m_Ks{};
-  float m_shininess{};
-  GLuint m_diffuseTexture{};
+  GLuint diffuseTexture{};
+
+  GLint PredioViewMatrixLocation{};
+  GLint PredioProjMatrixLocation{};
+  GLint PredioModelMatrixLocation{};
+  GLint PredioColorLocation{};
+
+  glm::vec4 lightColor{0.0f, 1.0f, 0.0f, 0.0f};
+  glm::vec4 lightPos{0.0f, 1.0f, 0.0f, 0.0f};
+  glm::vec4 Ia{1.0f};
+  glm::vec4 Ka{0.2f, 0.2f, 0.2f, 1.0f};
+  glm::vec4 Id{1.0f};
+  glm::vec4 Is{1.0f};
+  glm::vec4 Kd{1.0f};
+  glm::vec4 Ks{1.0f};
+  float shininess{150.0f};
+
+  std::vector<glm::vec3> building_positions;
+  std::vector<int> num_andares_por_predio;
+  std::vector<float> num_largura;
+  std::vector<float> num_profundidade;
+
+  std::vector<glm::vec4> cores_aleatorias;
 
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
 
-  bool m_hasNormals{false};
-  bool m_hasTexCoords{false};
+  void create(Model m_model, const std::string assetsPath);
+  void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, int m_seed, int num_building, std::array<float, 4> m_clearColor, bool cores_random);
+  void update(glm::vec4 lightColorParam, glm::vec3 LightPosParam);
+  void destroy();
 
-  void computeNormals();
-  void createBuffers();
-  void standardize();
+  float calcularValorY(int i);
+
+  bool isPositionValid(const std::vector<glm::vec3> &positions,
+                       const glm::vec3 &newPosition, float radius);
+  std::vector<glm::vec3> generateRandomBuildingPositions(int numBuildings,
+                                                         int seed, float a,
+                                                         float b, float c,
+                                                         float d);
+  std::vector<int> gerarAndaresPorPredio(int num_building, int seed);
+  std::vector<float> gerarLarguraProfundidadeAleatorio(int num_building,
+                                                       int seed);
+  std::vector<glm::vec4> gerarCoresAleatorias(int numBuildings);
 };
 
 #endif

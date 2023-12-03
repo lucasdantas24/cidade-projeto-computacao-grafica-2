@@ -8,9 +8,11 @@
 template <> struct std::hash<Vertex> {
   size_t operator()(Vertex const &vertex) const noexcept {
     auto const h1{std::hash<glm::vec3>()(vertex.position)};
-    return h1;
+    auto const h2{std::hash<glm::vec3>()(vertex.normal)};
+    return abcg::hashCombine(h1, h2);
   }
 };
+
 void Window::onEvent(SDL_Event const &event) {
   if (event.type == SDL_KEYDOWN) {
     if (event.key.keysym.sym == SDLK_w)
@@ -53,132 +55,6 @@ void Window::onEvent(SDL_Event const &event) {
   }
 }
 
-std::vector<int> Window::gerarAndaresPorPredio(int num_building, int seed) {
-  std::vector<int> num_andares_por_predio;
-
-  {
-    std::mt19937 gen(seed); // Use a semente fixa para inicializar o gerador de
-                            // números pseudo-aleatórios
-    std::uniform_int_distribution<> dis(
-        1, 5); // Ajuste o intervalo conforme necessário
-
-    for (int j = 0; j < num_building; j++) {
-      int num_andar =
-          dis(gen); // Gera um número aleatório de andares para cada prédio
-      num_andares_por_predio.push_back(num_andar);
-    }
-  }
-
-  return num_andares_por_predio;
-}
-
-std::vector<float> Window::gerarLarguraProfundidadeAleatorio(int num_building,
-                                                             int seed) {
-  std::vector<float> largura_profundidade;
-
-  {
-    std::mt19937 gen(seed); // Use a semente fixa para inicializar o gerador de
-                            // números pseudo-aleatórios
-    std::uniform_real_distribution<float> dis(
-        0.4f, 0.8f); // Ajuste o intervalo conforme necessário
-
-    for (int j = 0; j < num_building; j++) {
-      float num =
-          dis(gen); // Gera um número aleatório de andares para cada prédio
-      largura_profundidade.push_back(num);
-    }
-  }
-
-  return largura_profundidade;
-}
-
-std::vector<glm::vec4> Window::gerarCoresAleatorias(int numBuildings) {
-  std::vector<glm::vec4> cores_aleatorias;
-  srand(time(NULL)); // inicializa a semente do gerador de números aleatórios
-
-  for (int i = 0; i < numBuildings; i++) {
-    float r =
-        static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) *
-                                      2.0f); // Fator de escurecimento aplicado
-    float g =
-        static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) * 2.0f);
-    float b =
-        static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) * 2.0f);
-    float a = 1.0f; // Alfa definido como 1.0 para opacidade total
-    glm::vec4 cor(r, g, b, a);
-    cores_aleatorias.push_back(cor);
-  }
-
-  return cores_aleatorias;
-}
-
-std::vector<glm::vec3>
-Window::generateRandomBuildingPositions(int numBuildings, int seed, float a,
-                                        float b, float c, float d) {
-  std::vector<glm::vec3> positions;
-  std::mt19937 gen(seed);
-  std::uniform_real_distribution<float> disX(a, b);
-  std::uniform_real_distribution<float> disZ(c, d);
-
-  for (int i = 0; i < numBuildings; ++i) {
-    glm::vec3 newPos;
-    do {
-      float posX = disX(gen);
-      float posZ = disZ(gen);
-      newPos = glm::vec3(posX, 0.0f, posZ);
-    } while (!isPositionValid(positions, newPos, 0.3f));
-
-    positions.emplace_back(newPos);
-  }
-
-  return positions;
-}
-
-bool Window::isPositionValid(const std::vector<glm::vec3> &positions,
-                             const glm::vec3 &newPosition, float radius) {
-
-  double integralX;
-  double fractionalX = modf(newPosition.x, &integralX);
-  int xPosition = (int)integralX;
-  if (fractionalX > 0.5)
-    xPosition++;
-  double integralZ;
-  double fractionalZ = modf(newPosition.z, &integralZ);
-  int zPosition = (int)integralZ;
-  if (fractionalZ > 0.5)
-    zPosition++;
-  auto const isCenter = (newPosition.z == 0 || newPosition.x == 0);
-  auto const isBorder = (zPosition % 5 == 0 || xPosition % 5 == 0);
-  bool valid = isCenter || isBorder ? false : true;
-  for (const auto &position : positions) {
-    if (glm::distance(newPosition, position) < 2 * radius) {
-      valid = false;
-    }
-  }
-  return valid;
-}
-
-void Window::loadPredio(std::string_view path) {
-  auto const assetsPath{abcg::Application::getAssetsPath()};
-  predio_program =
-      abcg::createOpenGLProgram({{.source = assetsPath + "texture.vert",
-                                  .stage = abcg::ShaderStage::Vertex},
-                                 {.source = assetsPath + "texture.frag",
-                                  .stage = abcg::ShaderStage::Fragment}});
-  m_predio.destroy();
-
-  m_predio.loadDiffuseTexture(assetsPath + "maps/brick_base.jpg");
-  m_predio.loadObj(path);
-  m_predio.setupVAO(predio_program);
-  m_trianglesToDraw = m_predio.getNumTriangles();
-
-  // Use material properties from the loaded model
-  m_Ka = m_predio.getKa();
-  m_Kd = m_predio.getKd();
-  m_Ks = m_predio.getKs();
-  m_shininess = m_predio.getShininess();
-}
-
 auto lastTime = std::chrono::steady_clock::now();
 void Window::onCreate() {
   auto const &assetsPath{abcg::Application::getAssetsPath()};
@@ -197,11 +73,9 @@ void Window::onCreate() {
 
   m_ground.create(m_program);
 
-  loadPredio(assetsPath + "box.obj");
-  m_mappingMode = 3;
+  m_predio.create(m_model, assetsPath);
 
-  m_janela.loadObj(assetsPath + "box.obj");
-  m_janela.setupVAO(m_program);
+  m_janela.create(m_model, assetsPath);
 
   m_balloon.loadObj(assetsPath + "Air_Balloon.obj");
   m_balloon.setupVAO(m_program);
@@ -259,8 +133,6 @@ void Window::onCreate() {
   abcg::glBindVertexArray(0);
 }
 
-float Window::calcularValorY(int i) { return 0.6f * (i + 1); }
-
 void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
                          float buildingDepth, int floor, float windowWidth,
                          float windowDepth, float windowOffsetX,
@@ -306,51 +178,17 @@ void Window::fazerJanela(glm::vec3 buildingPosition, float buildingWidth,
   abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
 
   // Render the window cube
-  m_janela.render();
+  m_janela.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model);
 }
 
 void Window::onPaint() {
+
+  abcg::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  abcg::glViewport(0, 0, m_viewportSize.x, m_viewportSize.y);
+
   abcg::glUseProgram(m_program);
 
-  // Get location of uniform variables
-  auto const viewMatrixLoc{abcg::glGetUniformLocation(m_program, "viewMatrix")};
-  auto const projMatrixLoc{abcg::glGetUniformLocation(m_program, "projMatrix")};
-  auto const modelMatrixLoc{
-      abcg::glGetUniformLocation(m_program, "modelMatrix")};
-  auto const normalMatrixLoc{
-      abcg::glGetUniformLocation(m_program, "normalMatrix")};
-  auto const lightDirLoc{
-      abcg::glGetUniformLocation(m_program, "lightDirWorldSpace")};
-  auto const shininessLoc{abcg::glGetUniformLocation(m_program, "shininess")};
-  auto const IaLoc{abcg::glGetUniformLocation(m_program, "Ia")};
-  auto const IdLoc{abcg::glGetUniformLocation(m_program, "Id")};
-  auto const IsLoc{abcg::glGetUniformLocation(m_program, "Is")};
-  auto const KaLoc{abcg::glGetUniformLocation(m_program, "Ka")};
-  auto const KdLoc{abcg::glGetUniformLocation(m_program, "Kd")};
-  auto const KsLoc{abcg::glGetUniformLocation(m_program, "Ks")};
-  auto const diffuseTexLoc{abcg::glGetUniformLocation(m_program, "diffuseTex")};
-  auto const mappingModeLoc{
-      abcg::glGetUniformLocation(m_program, "mappingMode")};
-
-  // Set uniform variables that have the same value for every model
-  abcg::glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE,
-                           &m_camera.getViewMatrix()[0][0]);
-  abcg::glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE,
-                           &m_camera.getProjMatrix()[0][0]);
-  abcg::glUniform1i(diffuseTexLoc, 0);
-  abcg::glUniform1i(mappingModeLoc, m_mappingMode);
-
-  abcg::glUniform4fv(IaLoc, 1, &m_Ia.x);
-  abcg::glUniform4fv(IdLoc, 1, &m_Id.x);
-  abcg::glUniform4fv(IsLoc, 1, &m_Is.x);
-
-  building_positions = generateRandomBuildingPositions(
-      num_building, m_seed, -15.0f, 15.0f, -15.0f, 15.0f);
-
-  num_andares_por_predio = gerarAndaresPorPredio(num_building, m_seed);
-  num_largura = gerarLarguraProfundidadeAleatorio(num_building, m_seed);
-  num_profundidade = gerarLarguraProfundidadeAleatorio(num_building, m_seed);
-  cores_aleatorias = gerarCoresAleatorias(num_building);
   // Clear color buffer and depth buffer
   abcg::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -363,51 +201,15 @@ void Window::onPaint() {
   abcg::glUniformMatrix4fv(m_projMatrixLocation, 1, GL_FALSE,
                            &m_camera.getProjMatrix()[0][0]);
 
-  abcg::glBindVertexArray(m_VAO);
 
-  for (int j = 0; j < num_building; j++) {
-    for (int i = 0; i < num_andares_por_predio.at(j); i++) {
-      glm::mat4 modelMatrix{1.0f};
-      glm::vec3 posicao_predio =
-          glm::vec3(building_positions.at(j).x, calcularValorY(i),
-                    building_positions.at(j).z);
-      modelMatrix = glm::translate(modelMatrix, posicao_predio);
-      modelMatrix = glm::scale(
-          modelMatrix,
-          glm::vec3(num_largura.at(j), 1.0f,
-                    num_profundidade.at(j))); // Ajuste os valores de escala
-      glm::vec4 cor;
+  m_predio.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model, m_seed, num_building, m_clearColor, cores_random);
 
-      if (cores_random) {
-        cor = cores_aleatorias.at(j);
-      } else {
-        // Cor fixa, por exemplo, cinza
-        cor = glm::vec4(m_clearColor.at(0), m_clearColor.at(1),
-                        m_clearColor.at(2), m_clearColor.at(3));
-      }
-      abcg::glUniform4f(m_colorLocation, cor[0], cor[1], cor[2], cor[3]);
-      abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
-
-      abcg::glUniform4fv(KaLoc, 1, &m_Ka.x);
-      abcg::glUniform4fv(KdLoc, 1, &m_Kd.x);
-      abcg::glUniform4fv(KsLoc, 1, &m_Ks.x);
-      abcg::glUniform1f(shininessLoc, m_shininess);
-      m_predio.render();
-      // Render windows on each floor
-
-      fazerJanela(posicao_predio, num_largura.at(j), num_profundidade.at(j), i,
-                  windowWidth, windowDepth, windowOffsetX, windowOffsetZ);
-    }
-  }
-
-  abcg::glBindVertexArray(0);
-
-  glm::mat4 modelMatrix{1.0f};
-  modelMatrix = glm::translate(modelMatrix, m_balloon.m_position);
-  modelMatrix = glm::scale(modelMatrix, glm::vec3(0.8f));
-  abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
-  abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
-  m_balloon.render();
+  //glm::mat4 modelMatrix{1.0f};
+  //modelMatrix = glm::translate(modelMatrix, m_balloon.m_position);
+  //modelMatrix = glm::scale(modelMatrix, glm::vec3(0.8f));
+  //abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
+  //abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
+  //m_balloon.render();
 
   // Draw ground
   m_ground.paint();

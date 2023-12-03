@@ -1,278 +1,231 @@
 #include "predio.hpp"
+#include <glm/fwd.hpp>
 
-#include <filesystem>
+#include <chrono>
+#include <random>
 #include <unordered_map>
 
-/// Explicit specialization of std::hash for Vertex
-template <> struct std::hash<Vertex> {
-  size_t operator()(Vertex const &vertex) const noexcept {
-    auto const h1{std::hash<glm::vec3>()(vertex.position)};
-    auto const h2{std::hash<glm::vec3>()(vertex.normal)};
-    auto const h3{std::hash<glm::vec2>()(vertex.texCoord)};
-    return abcg::hashCombine(h1, h2, h3);
-  }
-};
+void Predio::create(Model m_model, const std::string assetsPath) {
 
-void Predio::computeNormals() {
-  // Clear previous vertex normals
-  for (auto &vertex : m_vertices) {
-    vertex.normal = glm::vec3(0.0f);
-  }
+  PredioProgram = abcg::createOpenGLProgram(
+      {{.source = assetsPath + "predio.vert", .stage = abcg::ShaderStage::Vertex},
+       {.source = assetsPath + "predio.frag",
+        .stage = abcg::ShaderStage::Fragment}});
 
-  // Compute face normals
-  for (auto const offset : iter::range(0UL, m_indices.size(), 3UL)) {
-    // Get face vertices
-    auto &a{m_vertices.at(m_indices.at(offset + 0))};
-    auto &b{m_vertices.at(m_indices.at(offset + 1))};
-    auto &c{m_vertices.at(m_indices.at(offset + 2))};
+  // Carregamos os índices e vértices para a bola a partir do sphere.obj
+  m_model.loadObj(assetsPath + "box.obj", &m_vertices, &m_indices, &m_VBO,
+                  &m_EBO);
 
-    // Compute normal
-    auto const edge1{b.position - a.position};
-    auto const edge2{c.position - b.position};
-    auto const normal{glm::cross(edge1, edge2)};
+  // Inicializamos os buffers para a parede
+  m_model.setupVAO(PredioProgram, &m_VBO, &m_EBO, &m_VAO);
 
-    // Accumulate on vertices
-    a.normal += normal;
-    b.normal += normal;
-    c.normal += normal;
-  }
+  PredioViewMatrixLocation =
+      abcg::glGetUniformLocation(PredioProgram, "viewMatrix");
+  PredioProjMatrixLocation =
+      abcg::glGetUniformLocation(PredioProgram, "projMatrix");
 
-  // Normalize
-  for (auto &vertex : m_vertices) {
-    vertex.normal = glm::normalize(vertex.normal);
-  }
+  PredioColorLocation = abcg::glGetUniformLocation(PredioProgram, "color");
 
-  m_hasNormals = true;
+  m_model.loadDiffuseTexture(assetsPath + "maps/brick_base.jpg", &diffuseTexture);
 }
 
-void Predio::createBuffers() {
-  // Delete previous buffers
-  abcg::glDeleteBuffers(1, &m_EBO);
-  abcg::glDeleteBuffers(1, &m_VBO);
-
-  // VBO
-  abcg::glGenBuffers(1, &m_VBO);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-  abcg::glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(m_vertices.at(0)) * m_vertices.size(),
-                     m_vertices.data(), GL_STATIC_DRAW);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  // EBO
-  abcg::glGenBuffers(1, &m_EBO);
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-  abcg::glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     sizeof(m_indices.at(0)) * m_indices.size(),
-                     m_indices.data(), GL_STATIC_DRAW);
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+void Predio::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
+  // Acertamos a luz especular, "brilho", com a cor da luz incidente
+  lightPos = glm::vec4(LightPosParam, 0);
+  Is = lightColorParam;
+  shininess = 2 * abs(LightPosParam.x);
 }
 
-void Predio::loadDiffuseTexture(std::string_view path) {
-  if (!std::filesystem::exists(path))
-    return;
+void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, int m_seed, int num_building,
+                  std::array<float, 4> m_clearColor, bool cores_random) {
 
-  abcg::glDeleteTextures(1, &m_diffuseTexture);
-  m_diffuseTexture = abcg::loadOpenGLTexture({.path = path});
-}
+  abcg::glUseProgram(PredioProgram);
 
-void Predio::loadObj(std::string_view path, bool standardize) {
-  auto const basePath{std::filesystem::path{path}.parent_path().string() + "/"};
+  building_positions = generateRandomBuildingPositions(
+      num_building, m_seed, -15.0f, 15.0f, -15.0f, 15.0f);
 
-  tinyobj::ObjReaderConfig readerConfig;
-  readerConfig.mtl_search_path = basePath; // Path to material files
+  num_andares_por_predio = gerarAndaresPorPredio(num_building, m_seed);
+  num_largura = gerarLarguraProfundidadeAleatorio(num_building, m_seed);
+  num_profundidade = gerarLarguraProfundidadeAleatorio(num_building, m_seed);
+  cores_aleatorias = gerarCoresAleatorias(num_building);
 
-  tinyobj::ObjReader reader;
+  // Localização das matrizes
+  auto const viewMatrixLoc{
+      abcg::glGetUniformLocation(PredioProgram, "viewMatrix")};
+  auto const projMatrixLoc{
+      abcg::glGetUniformLocation(PredioProgram, "projMatrix")};
+  auto const modelMatrixLoc{
+      abcg::glGetUniformLocation(PredioProgram, "modelMatrix")};
+  auto const normalMatrixLoc{
+      abcg::glGetUniformLocation(PredioProgram, "normalMatrix")};
 
-  if (!reader.ParseFromFile(path.data(), readerConfig)) {
-    if (!reader.Error().empty()) {
-      throw abcg::RuntimeError(
-          fmt::format("Failed to load model {} ({})", path, reader.Error()));
+  auto const lightLoc{abcg::glGetUniformLocation(PredioProgram, "lightPos")};
+
+  // Localização das propriedades de iluminação do sol
+  auto const shininessLoc{abcg::glGetUniformLocation(PredioProgram, "shininess")};
+  auto const IaLoc{abcg::glGetUniformLocation(PredioProgram, "Ia")};
+  auto const IdLoc{abcg::glGetUniformLocation(PredioProgram, "Id")};
+  auto const IsLoc{abcg::glGetUniformLocation(PredioProgram, "Is")};
+  auto const KaLoc{abcg::glGetUniformLocation(PredioProgram, "Ka")};
+  auto const KdLoc{abcg::glGetUniformLocation(PredioProgram, "Kd")};
+  auto const KsLoc{abcg::glGetUniformLocation(PredioProgram, "Ks")};
+
+  // Bind das propriedades
+  abcg::glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, &viewMatrix[0][0]);
+  abcg::glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE, &projMatrix[0][0]);
+
+  // Propriedades da luz
+  abcg::glUniform4fv(lightLoc, 1, &lightPos.x);
+  abcg::glUniform4fv(IaLoc, 1, &Ia.x);
+  abcg::glUniform4fv(IdLoc, 1, &Id.x);
+  abcg::glUniform4fv(IsLoc, 1, &Is.x);
+  abcg::glUniform4fv(KaLoc, 1, &Ka.x);
+  abcg::glUniform4fv(KdLoc, 1, &Kd.x);
+  abcg::glUniform4fv(KsLoc, 1, &Ks.x);
+  abcg::glUniform1f(shininessLoc, shininess);
+
+  for (int j = 0; j < num_building; j++) {
+    for (int i = 0; i < num_andares_por_predio.at(j); i++) {
+      glm::mat4 modelMatrix{1.0f};
+      glm::vec3 posicao_predio =
+          glm::vec3(building_positions.at(j).x, calcularValorY(i),
+                    building_positions.at(j).z);
+      modelMatrix = glm::translate(modelMatrix, posicao_predio);
+      modelMatrix = glm::scale(
+          modelMatrix,
+          glm::vec3(num_largura.at(j), 1.0f,
+                    num_profundidade.at(j))); // Ajuste os valores de escala
+      glm::vec4 cor;
+
+      if (cores_random) {
+        cor = cores_aleatorias.at(j);
+      } else {
+        // Cor fixa, por exemplo, cinza
+        cor = glm::vec4(m_clearColor.at(0), m_clearColor.at(1),
+                        m_clearColor.at(2), m_clearColor.at(3));
+      }
+      abcg::glUniform4f(PredioColorLocation, cor[0], cor[1], cor[2], cor[3]);
+      abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
+
+      m_model.renderTexture(&m_indices, &m_VAO, diffuseTexture);
+      // Render windows on each floor
+
+      //fazerJanela(posicao_predio, num_largura.at(j), num_profundidade.at(j), i,
+      //            windowWidth, windowDepth, windowOffsetX, windowOffsetZ);
     }
-    throw abcg::RuntimeError(fmt::format("Failed to load model {}", path));
-  }
-
-  if (!reader.Warning().empty()) {
-    fmt::print("Warning: {}\n", reader.Warning());
-  }
-
-  auto const &attrib{reader.GetAttrib()};
-  auto const &shapes{reader.GetShapes()};
-  auto const &materials{reader.GetMaterials()};
-
-  m_vertices.clear();
-  m_indices.clear();
-
-  m_hasNormals = false;
-  m_hasTexCoords = false;
-
-  // A key:value map with key=Vertex and value=index
-  std::unordered_map<Vertex, GLuint> hash{};
-
-  // Loop over shapes
-  for (auto const &shape : shapes) {
-    // Loop over indices
-    for (auto const offset : iter::range(shape.mesh.indices.size())) {
-      // Access to vertex
-      auto const index{shape.mesh.indices.at(offset)};
-
-      // Position
-      auto const startIndex{3 * index.vertex_index};
-      glm::vec3 position{attrib.vertices.at(startIndex + 0),
-                         attrib.vertices.at(startIndex + 1),
-                         attrib.vertices.at(startIndex + 2)};
-
-      // Normal
-      glm::vec3 normal{};
-      if (index.normal_index >= 0) {
-        m_hasNormals = true;
-        auto const normalStartIndex{3 * index.normal_index};
-        normal = {attrib.normals.at(normalStartIndex + 0),
-                  attrib.normals.at(normalStartIndex + 1),
-                  attrib.normals.at(normalStartIndex + 2)};
-      }
-
-      // Texture coordinates
-      glm::vec2 texCoord{};
-      if (index.texcoord_index >= 0) {
-        m_hasTexCoords = true;
-        auto const texCoordsStartIndex{2 * index.texcoord_index};
-        texCoord = {attrib.texcoords.at(texCoordsStartIndex + 0),
-                    attrib.texcoords.at(texCoordsStartIndex + 1)};
-      }
-
-      Vertex const vertex{
-          .position = position, .normal = normal, .texCoord = texCoord};
-
-      // If hash doesn't contain this vertex
-      if (!hash.contains(vertex)) {
-        // Add this index (size of m_vertices)
-        hash[vertex] = m_vertices.size();
-        // Add this vertex
-        m_vertices.push_back(vertex);
-      }
-
-      m_indices.push_back(hash[vertex]);
-    }
-  }
-
-  // Use properties of first material, if available
-  if (!materials.empty()) {
-    auto const &mat{materials.at(0)}; // First material
-    m_Ka = {mat.ambient[0], mat.ambient[1], mat.ambient[2], 1};
-    m_Kd = {mat.diffuse[0], mat.diffuse[1], mat.diffuse[2], 1};
-    m_Ks = {mat.specular[0], mat.specular[1], mat.specular[2], 1};
-    m_shininess = mat.shininess;
-
-    if (!mat.diffuse_texname.empty())
-      loadDiffuseTexture(basePath + mat.diffuse_texname);
-  } else {
-    // Default values
-    m_Ka = {0.1f, 0.1f, 0.1f, 1.0f};
-    m_Kd = {0.7f, 0.7f, 0.7f, 1.0f};
-    m_Ks = {1.0f, 1.0f, 1.0f, 1.0f};
-    m_shininess = 25.0f;
-  }
-
-  if (standardize) {
-    Predio::standardize();
-  }
-
-  if (!m_hasNormals) {
-    computeNormals();
-  }
-
-  createBuffers();
-}
-
-void Predio::render(int numTriangles) const {
-  abcg::glBindVertexArray(m_VAO);
-
-  abcg::glActiveTexture(GL_TEXTURE0);
-  abcg::glBindTexture(GL_TEXTURE_2D, m_diffuseTexture);
-
-  // Set minification and magnification parameters
-  abcg::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  abcg::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  // Set texture wrapping parameters
-  abcg::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  abcg::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-  auto const numIndices{(numTriangles < 0) ? m_indices.size()
-                                           : numTriangles * 3};
-
-  abcg::glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
-
-  abcg::glBindVertexArray(0);
-}
-
-void Predio::setupVAO(GLuint program) {
-  // Release previous VAO
-  abcg::glDeleteVertexArrays(1, &m_VAO);
-
-  // Create VAO
-  abcg::glGenVertexArrays(1, &m_VAO);
-  abcg::glBindVertexArray(m_VAO);
-
-  // Bind EBO and VBO
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-
-  // Bind vertex attributes
-  auto const positionAttribute{
-      abcg::glGetAttribLocation(program, "inPosition")};
-  if (positionAttribute >= 0) {
-    abcg::glEnableVertexAttribArray(positionAttribute);
-    abcg::glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE,
-                                sizeof(Vertex), nullptr);
-  }
-
-  auto const normalAttribute{abcg::glGetAttribLocation(program, "inNormal")};
-  if (normalAttribute >= 0) {
-    abcg::glEnableVertexAttribArray(normalAttribute);
-    auto const offset{offsetof(Vertex, normal)};
-    abcg::glVertexAttribPointer(normalAttribute, 3, GL_FLOAT, GL_FALSE,
-                                sizeof(Vertex),
-                                reinterpret_cast<void *>(offset));
-  }
-
-  auto const texCoordAttribute{
-      abcg::glGetAttribLocation(program, "inTexCoord")};
-  if (texCoordAttribute >= 0) {
-    abcg::glEnableVertexAttribArray(texCoordAttribute);
-    auto const offset{offsetof(Vertex, texCoord)};
-    abcg::glVertexAttribPointer(texCoordAttribute, 2, GL_FLOAT, GL_FALSE,
-                                sizeof(Vertex),
-                                reinterpret_cast<void *>(offset));
-  }
-
-  // End of binding
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-  abcg::glBindVertexArray(0);
-}
-
-void Predio::standardize() {
-  // Center to origin and normalize largest bound to [-1, 1]
-
-  // Get bounds
-  glm::vec3 max(std::numeric_limits<float>::lowest());
-  glm::vec3 min(std::numeric_limits<float>::max());
-  for (auto const &vertex : m_vertices) {
-    max = glm::max(max, vertex.position);
-    min = glm::min(min, vertex.position);
-  }
-
-  // Center and scale
-  auto const center{(min + max) / 2.0f};
-  auto const scaling{2.0f / glm::length(max - min)};
-  for (auto &vertex : m_vertices) {
-    vertex.position = (vertex.position - center) * scaling;
   }
 }
 
 void Predio::destroy() {
-  abcg::glDeleteTextures(1, &m_diffuseTexture);
+  abcg::glDeleteProgram(PredioProgram);
   abcg::glDeleteBuffers(1, &m_EBO);
   abcg::glDeleteBuffers(1, &m_VBO);
   abcg::glDeleteVertexArrays(1, &m_VAO);
 }
+
+std::vector<int> Predio::gerarAndaresPorPredio(int num_building, int seed) {
+  std::vector<int> num_andares_por_predio;
+
+  {
+    std::mt19937 gen(seed); // Use a semente fixa para inicializar o gerador de
+                            // números pseudo-aleatórios
+    std::uniform_int_distribution<> dis(
+        1, 5); // Ajuste o intervalo conforme necessário
+
+    for (int j = 0; j < num_building; j++) {
+      int num_andar =
+          dis(gen); // Gera um número aleatório de andares para cada prédio
+      num_andares_por_predio.push_back(num_andar);
+    }
+  }
+
+  return num_andares_por_predio;
+}
+
+std::vector<float> Predio::gerarLarguraProfundidadeAleatorio(int num_building,
+                                                             int seed) {
+  std::vector<float> largura_profundidade;
+
+  {
+    std::mt19937 gen(seed); // Use a semente fixa para inicializar o gerador de
+                            // números pseudo-aleatórios
+    std::uniform_real_distribution<float> dis(
+        0.4f, 0.8f); // Ajuste o intervalo conforme necessário
+
+    for (int j = 0; j < num_building; j++) {
+      float num =
+          dis(gen); // Gera um número aleatório de andares para cada prédio
+      largura_profundidade.push_back(num);
+    }
+  }
+
+  return largura_profundidade;
+}
+
+std::vector<glm::vec4> Predio::gerarCoresAleatorias(int numBuildings) {
+  std::vector<glm::vec4> cores_aleatorias;
+  srand(time(NULL)); // inicializa a semente do gerador de números aleatórios
+
+  for (int i = 0; i < numBuildings; i++) {
+    float r =
+        static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) *
+                                      2.0f); // Fator de escurecimento aplicado
+    float g =
+        static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) * 2.0f);
+    float b =
+        static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) * 2.0f);
+    float a = 1.0f; // Alfa definido como 1.0 para opacidade total
+    glm::vec4 cor(r, g, b, a);
+    cores_aleatorias.push_back(cor);
+  }
+
+  return cores_aleatorias;
+}
+
+std::vector<glm::vec3>
+Predio::generateRandomBuildingPositions(int numBuildings, int seed, float a,
+                                        float b, float c, float d) {
+  std::vector<glm::vec3> positions;
+  std::mt19937 gen(seed);
+  std::uniform_real_distribution<float> disX(a, b);
+  std::uniform_real_distribution<float> disZ(c, d);
+
+  for (int i = 0; i < numBuildings; ++i) {
+    glm::vec3 newPos;
+    do {
+      float posX = disX(gen);
+      float posZ = disZ(gen);
+      newPos = glm::vec3(posX, 0.0f, posZ);
+    } while (!isPositionValid(positions, newPos, 0.3f));
+
+    positions.emplace_back(newPos);
+  }
+
+  return positions;
+}
+
+bool Predio::isPositionValid(const std::vector<glm::vec3> &positions,
+                             const glm::vec3 &newPosition, float radius) {
+
+  double integralX;
+  double fractionalX = modf(newPosition.x, &integralX);
+  int xPosition = (int)integralX;
+  if (fractionalX > 0.5)
+    xPosition++;
+  double integralZ;
+  double fractionalZ = modf(newPosition.z, &integralZ);
+  int zPosition = (int)integralZ;
+  if (fractionalZ > 0.5)
+    zPosition++;
+  auto const isCenter = (newPosition.z == 0 || newPosition.x == 0);
+  auto const isBorder = (zPosition % 5 == 0 || xPosition % 5 == 0);
+  bool valid = isCenter || isBorder ? false : true;
+  for (const auto &position : positions) {
+    if (glm::distance(newPosition, position) < 2 * radius) {
+      valid = false;
+    }
+  }
+  return valid;
+}
+
+float Predio::calcularValorY(int i) { return 0.6f * (i + 1); }
