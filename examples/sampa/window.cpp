@@ -321,6 +321,51 @@ void Window::onPaintUI() {
 
     ImGui::End();
   }
+
+  // Dentro do método onPaintUI()
+  {
+    // Defina o tamanho e a posição da nova janela
+    ImVec2 windowSize(300, 250);
+    float newWindowX = 5;
+    float newWindowY = 210;
+
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(newWindowX, newWindowY),
+                            ImGuiCond_FirstUseEver);
+
+    // Inicie uma nova janela ImGui para os parâmetros de iluminação do prédio
+    ImGui::Begin("Parâmetros Iluminação Prédio");
+
+    // Adicione sliders para ajustar os atributos de iluminação
+    // Dentro do bloco de código para criar a nova janela no ImGui
+    // ImGui::SliderFloat("Cor da Luz (R)", &m_predio.lightColor.x, 0.0f, 1.0f,
+    //                    "%.2f");
+    // ImGui::SliderFloat("Cor da Luz (G)", &m_predio.lightColor.y, 0.0f, 1.0f,
+    //                    "%.2f");
+    // ImGui::SliderFloat("Cor da Luz (B)", &m_predio.lightColor.z, 0.0f, 1.0f,
+    //                    "%.2f");
+
+    // ImGui::SliderFloat3("Posição da Luz", &m_predio.lightPos.x,
+    // -10.0f, 10.0f,
+    //                     "%.2f");
+    ImGui::SliderFloat("Intensidade Ambiente", &m_predio.Ia.x, 0.0f, 5.0f,
+                       "%.2f");
+    // ImGui::SliderFloat4("Reflexão Ambiente", &m_predio.Ka.x, 0.0f, 1.0f,
+    //                     "%.2f");
+    // ImGui::SliderFloat("Intensidade Difusa", &m_predio.Id.x, 0.0f, 5.0f,
+    //                    "%.2f");
+    // ImGui::SliderFloat4("Reflexão Difusa", &m_predio.Kd.x, 0.0f, 1.0f,
+    // "%.2f"); ImGui::SliderFloat("Intensidade Especular", &m_predio.Is.x,
+    // 0.0f, 5.0f,
+    //                    "%.2f");
+    // ImGui::SliderFloat4("Reflexão Especular", &m_predio.Ks.x, 0.0f, 1.0f,
+    //                     "%.2f");
+    // ImGui::SliderFloat("Brilho Especular", &m_predio.shininess, 1.0f, 100.0f,
+    //                    "%.2f");
+
+    // Finalize a janela ImGui
+    ImGui::End();
+  }
 }
 
 void Window::onResize(glm::ivec2 const &size) {
