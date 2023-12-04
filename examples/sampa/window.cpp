@@ -65,11 +65,10 @@ void Window::onCreate() {
   abcg::glEnable(GL_DEPTH_TEST);
 
   // Create program
-  m_program =
-      abcg::createOpenGLProgram({{.source = assetsPath + "main.vert",
-                                  .stage = abcg::ShaderStage::Vertex},
-                                 {.source = assetsPath + "main.frag",
-                                  .stage = abcg::ShaderStage::Fragment}});
+  m_program = abcg::createOpenGLProgram(
+      {{.source = assetsPath + "main.vert", .stage = abcg::ShaderStage::Vertex},
+       {.source = assetsPath + "main.frag",
+        .stage = abcg::ShaderStage::Fragment}});
 
   m_ground.create(m_program);
 
@@ -155,7 +154,8 @@ void Window::onPaint() {
   modelMatrix = glm::translate(modelMatrix, m_balloon.m_position);
   modelMatrix = glm::scale(modelMatrix, glm::vec3(0.8f));
   abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
-  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
+  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
+                           &modelMatrix[0][0]);
   m_balloon.render();
 
   // Draw ground
@@ -163,8 +163,9 @@ void Window::onPaint() {
 
   renderSkybox();
 
-  m_predio.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model, m_seed, num_building, m_clearColor, cores_random,
-   windowWidth, windowDepth, windowOffsetX, windowOffsetZ, janelas_acesas);
+  m_predio.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model,
+                 m_seed, num_building, m_clearColor, cores_random, windowWidth,
+                 windowDepth, windowOffsetX, windowOffsetZ, janelas_acesas);
 
   abcg::glUseProgram(0);
 }

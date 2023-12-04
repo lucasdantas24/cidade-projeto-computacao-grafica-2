@@ -9,10 +9,11 @@ void Predio::create(Model m_model, const std::string assetsPath) {
 
   m_janela.create(m_janela_model, assetsPath);
 
-  PredioProgram = abcg::createOpenGLProgram(
-      {{.source = assetsPath + "predio.vert", .stage = abcg::ShaderStage::Vertex},
-       {.source = assetsPath + "predio.frag",
-        .stage = abcg::ShaderStage::Fragment}});
+  PredioProgram =
+      abcg::createOpenGLProgram({{.source = assetsPath + "predio.vert",
+                                  .stage = abcg::ShaderStage::Vertex},
+                                 {.source = assetsPath + "predio.frag",
+                                  .stage = abcg::ShaderStage::Fragment}});
 
   // Carregamos os índices e vértices para a bola a partir do sphere.obj
   m_model.loadObj(assetsPath + "box.obj", &m_vertices, &m_indices, &m_VBO,
@@ -28,7 +29,8 @@ void Predio::create(Model m_model, const std::string assetsPath) {
 
   PredioColorLocation = abcg::glGetUniformLocation(PredioProgram, "color");
 
-  m_model.loadDiffuseTexture(assetsPath + "maps/brick_base.jpg", &diffuseTexture);
+  m_model.loadDiffuseTexture(assetsPath + "maps/brick_base.jpg",
+                             &diffuseTexture);
 }
 
 void Predio::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
@@ -38,9 +40,11 @@ void Predio::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
   shininess = 2 * abs(LightPosParam.x);
 }
 
-void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, int m_seed, int num_building,
-                  std::array<float, 4> m_clearColor, bool cores_random, float windowWidth, float windowDepth,
-                  float windowOffsetX, float windowOffsetZ, bool janelas_acesas) {
+void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
+                   int m_seed, int num_building,
+                   std::array<float, 4> m_clearColor, bool cores_random,
+                   float windowWidth, float windowDepth, float windowOffsetX,
+                   float windowOffsetZ, bool janelas_acesas) {
 
   abcg::glUseProgram(PredioProgram);
 
@@ -65,7 +69,8 @@ void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, in
   auto const lightLoc{abcg::glGetUniformLocation(PredioProgram, "lightPos")};
 
   // Localização das propriedades de iluminação do sol
-  auto const shininessLoc{abcg::glGetUniformLocation(PredioProgram, "shininess")};
+  auto const shininessLoc{
+      abcg::glGetUniformLocation(PredioProgram, "shininess")};
   auto const IaLoc{abcg::glGetUniformLocation(PredioProgram, "Ia")};
   auto const IdLoc{abcg::glGetUniformLocation(PredioProgram, "Id")};
   auto const IsLoc{abcg::glGetUniformLocation(PredioProgram, "Is")};
@@ -114,8 +119,9 @@ void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, in
       m_model.renderTexture(&m_indices, &m_VAO, diffuseTexture);
       // Render windows on each floor
 
-      m_janela.paint(viewMatrix, projMatrix, m_janela_model, posicao_predio, num_largura.at(j), num_profundidade.at(j), i,
-                  windowWidth, windowDepth, windowOffsetX, windowOffsetZ, janelas_acesas);
+      m_janela.paint(viewMatrix, projMatrix, m_janela_model, posicao_predio,
+                     num_largura.at(j), num_profundidade.at(j), i, windowWidth,
+                     windowDepth, windowOffsetX, windowOffsetZ, janelas_acesas);
     }
   }
 }
@@ -233,4 +239,3 @@ bool Predio::isPositionValid(const std::vector<glm::vec3> &positions,
 }
 
 float Predio::calcularValorY(int i) { return 0.6f * (i + 1); }
-
