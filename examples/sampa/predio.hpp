@@ -28,15 +28,15 @@ public:
   GLint PredioModelMatrixLocation{};
   GLint PredioColorLocation{};
 
-  glm::vec4 lightColor{1.0f, 1.0f, 1.0f, 0.0f}; // Luz branca
-  glm::vec4 lightPos{0.0f, 5.0f, 5.0f, 0.0f};   // Posição da luz
-  glm::vec4 Ia{2.0f};                           // Intensidade da luz ambiente
-  glm::vec4 Ka{0.2f, 0.2f, 0.2f, 1.0f}; // Coeficiente de reflexão ambiente
-  glm::vec4 Id{2.0f};                   // Intensidade difusa
-  glm::vec4 Is{2.0f};                   // Intensidade especular
-  glm::vec4 Kd{2.0f};                   // Coeficiente de reflexão difusa
-  glm::vec4 Ks{1.0f};                   // Coeficiente de reflexão especular
-  float shininess{50.0f};               // Brilho especular
+  glm::vec4 lightColor{}; // Luz branca
+  glm::vec4 lightPos{};   // Posição da luz
+  glm::vec4 Ia{};                           // Intensidade da luz ambiente
+  glm::vec4 Ka{}; // Coeficiente de reflexão ambiente
+  glm::vec4 Id{};                   // Intensidade difusa
+  glm::vec4 Is{};                   // Intensidade especular
+  glm::vec4 Kd{};                   // Coeficiente de reflexão difusa
+  glm::vec4 Ks{};                   // Coeficiente de reflexão especular
+  float shininess{};               // Brilho especular
 
   std::vector<glm::vec3> building_positions;
   std::vector<int> num_andares_por_predio;

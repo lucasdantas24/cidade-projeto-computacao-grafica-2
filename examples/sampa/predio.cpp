@@ -115,6 +115,11 @@ void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
       }
       abcg::glUniform4f(PredioColorLocation, cor[0], cor[1], cor[2], cor[3]);
       abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
+      auto modelViewMatrix{glm::mat3(viewMatrix * modelMatrix)};
+      auto normalMatrix{glm::inverseTranspose(modelViewMatrix)};
+      abcg::glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, &normalMatrix[0][0]);
+
+      abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);
 
       m_model.renderTexture(&m_indices, &m_VAO, diffuseTexture);
       // Render windows on each floor
