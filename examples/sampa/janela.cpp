@@ -3,10 +3,11 @@
 
 void Janela::create(Model m_model, const std::string assetsPath) {
 
-  JanelaProgram = abcg::createOpenGLProgram(
-      {{.source = assetsPath + "predio.vert", .stage = abcg::ShaderStage::Vertex},
-       {.source = assetsPath + "predio.frag",
-        .stage = abcg::ShaderStage::Fragment}});
+  JanelaProgram =
+      abcg::createOpenGLProgram({{.source = assetsPath + "predio.vert",
+                                  .stage = abcg::ShaderStage::Vertex},
+                                 {.source = assetsPath + "predio.frag",
+                                  .stage = abcg::ShaderStage::Fragment}});
 
   // Carregamos os índices e vértices para a bola a partir do sphere.obj
   m_model.loadObj(assetsPath + "box.obj", &m_vertices, &m_indices, &m_VBO,
@@ -22,7 +23,8 @@ void Janela::create(Model m_model, const std::string assetsPath) {
 
   JanelaColorLocation = abcg::glGetUniformLocation(JanelaProgram, "color");
 
-  m_model.loadDiffuseTexture(assetsPath + "maps/pattern.png", &diffuseTexture);
+  m_model.loadDiffuseTexture(assetsPath + "maps/Facade006_1K-JPG_Color.jpg",
+                             &diffuseTexture);
 }
 
 void Janela::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
@@ -32,10 +34,11 @@ void Janela::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
   shininess = 2 * abs(LightPosParam.x);
 }
 
-void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 buildingPosition, float buildingWidth,
-                         float buildingDepth, int floor, float windowWidth,
-                         float windowDepth, float windowOffsetX,
-                         float windowOffsetZ, bool janelas_acesas) {
+void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
+                   glm::vec3 buildingPosition, float buildingWidth,
+                   float buildingDepth, int floor, float windowWidth,
+                   float windowDepth, float windowOffsetX, float windowOffsetZ,
+                   bool janelas_acesas) {
 
   abcg::glUseProgram(JanelaProgram);
 
@@ -52,7 +55,8 @@ void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, gl
   auto const lightLoc{abcg::glGetUniformLocation(JanelaProgram, "lightPos")};
 
   // Localização das propriedades de iluminação do sol
-  auto const shininessLoc{abcg::glGetUniformLocation(JanelaProgram, "shininess")};
+  auto const shininessLoc{
+      abcg::glGetUniformLocation(JanelaProgram, "shininess")};
   auto const IaLoc{abcg::glGetUniformLocation(JanelaProgram, "Ia")};
   auto const IdLoc{abcg::glGetUniformLocation(JanelaProgram, "Id")};
   auto const IsLoc{abcg::glGetUniformLocation(JanelaProgram, "Is")};

@@ -228,59 +228,7 @@ void Window::onPaintUI() {
       }
     }
 
-    ImGui::Text("Cores Aleatórias:");
-
-    if (ImGui::RadioButton("Ligado", cores_random)) {
-      cores_random = true;
-      // Additional logic when "Ligado" is selected
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::RadioButton("Desligado", !cores_random)) {
-      cores_random = false;
-      // Additional logic when "Desligado" is selected
-    }
-
-    // Editar a cor do predio
-
-    ImGui::Text("Cor dos predios:");
-    ImGui::ColorEdit3("Escolha a COR", m_clearColor.data());
-
-    ImGui::End();
-  }
-
-  {
-    ImVec2 windowSize(250, 150);
-    float newWindowX = screenWidth - windowSize.x - 5;
-    // Define a posição Y
-    float newWindowY = 450;
-    // Configura a posição e o tamanho da janela
-    ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(newWindowX, newWindowY),
-                            ImGuiCond_FirstUseEver);
-    ImGui::Begin("Janela");
-    ImGui::Text("Variaveis das janelas:");
-    {
-      ImGui::SliderFloat("Largura", &windowWidth, 0.1f, 2.0f);
-      ImGui::SliderFloat("Profundidade", &windowDepth, 0.1f, 2.0f);
-      ImGui::SliderFloat("OffsetX", &windowOffsetX, -2.0f, 2.0f);
-      ImGui::SliderFloat("OffsetZ", &windowOffsetZ, -2.0f, 2.0f);
-    }
-
-    ImGui::Text("Janelas acesas:");
-
-    if (ImGui::RadioButton("Ligado", janelas_acesas)) {
-      janelas_acesas = true;
-      // Additional logic when "Ligado" is selected
-    }
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Desligado", !janelas_acesas)) {
-      janelas_acesas = false;
-      // Additional logic when "Desligado" is selected
-    }
-
-    ImGui::End();
+       ImGui::End();
   }
 
   {
@@ -353,20 +301,32 @@ void Window::onPaintUI() {
 
     // Adicione sliders para ajustar os atributos de iluminação
     // Dentro do bloco de código para criar a nova janela no ImGui
-    ImGui::SliderFloat("Cor da Luz (R)", &m_predio.lightColor.x, 0.0f, 1.0f, "%.2f");
-    ImGui::SliderFloat("Cor da Luz (G)", &m_predio.lightColor.y, 0.0f, 1.0f, "%.2f");
-    ImGui::SliderFloat("Cor da Luz (B)", &m_predio.lightColor.z, 0.0f, 1.0f, "%.2f");
+    ImGui::SliderFloat("Cor da Luz (R)", &m_predio.lightColor.x, 0.0f, 1.0f,
+                       "%.2f");
+    ImGui::SliderFloat("Cor da Luz (G)", &m_predio.lightColor.y, 0.0f, 1.0f,
+                       "%.2f");
+    ImGui::SliderFloat("Cor da Luz (B)", &m_predio.lightColor.z, 0.0f, 1.0f,
+                       "%.2f");
 
-    ImGui::SliderFloat("Posição da Luz x", &m_predio.lightPos.x, -10.0f, 10.0f,"%.2f");
-    ImGui::SliderFloat("Posição da Luz y", &m_predio.lightPos.y, -20.0f, 0.0f,"%.2f");
-    ImGui::SliderFloat("Posição da Luz z", &m_predio.lightPos.z, -10.0f, 10.0f,"%.2f");
-    ImGui::SliderFloat("Intensidade Ambiente", &m_predio.Ia.x, 0.0f, 5.0f, "%.2f");
-    ImGui::SliderFloat4("Reflexão Ambiente", &m_predio.Ka.x, 0.0f, 1.0f, "%.2f");
-    ImGui::SliderFloat("Intensidade Difusa", &m_predio.Id.x, 0.0f, 5.0f, "%.2f");
+    ImGui::SliderFloat("Posição da Luz x", &m_predio.lightPos.x, -10.0f, 10.0f,
+                       "%.2f");
+    ImGui::SliderFloat("Posição da Luz y", &m_predio.lightPos.y, -20.0f, 0.0f,
+                       "%.2f");
+    ImGui::SliderFloat("Posição da Luz z", &m_predio.lightPos.z, -10.0f, 10.0f,
+                       "%.2f");
+    ImGui::SliderFloat("Intensidade Ambiente", &m_predio.Ia.x, 0.0f, 5.0f,
+                       "%.2f");
+    ImGui::SliderFloat4("Reflexão Ambiente", &m_predio.Ka.x, 0.0f, 1.0f,
+                        "%.2f");
+    ImGui::SliderFloat("Intensidade Difusa", &m_predio.Id.x, 0.0f, 5.0f,
+                       "%.2f");
     ImGui::SliderFloat4("Reflexão Difusa", &m_predio.Kd.x, 0.0f, 1.0f, "%.2f");
-    ImGui::SliderFloat("Intensidade Especular", &m_predio.Is.x, 0.0f, 5.0f, "%.2f");
-    ImGui::SliderFloat4("Reflexão Especular", &m_predio.Ks.x, 0.0f, 1.0f, "%.2f");
-    ImGui::SliderFloat("Brilho Especular", &m_predio.shininess, 1.0f, 150.0f, "%.2f");
+    ImGui::SliderFloat("Intensidade Especular", &m_predio.Is.x, 0.0f, 5.0f,
+                       "%.2f");
+    ImGui::SliderFloat4("Reflexão Especular", &m_predio.Ks.x, 0.0f, 1.0f,
+                        "%.2f");
+    ImGui::SliderFloat("Brilho Especular", &m_predio.shininess, 1.0f, 150.0f,
+                       "%.2f");
 
     // Finalize a janela ImGui
     ImGui::End();
