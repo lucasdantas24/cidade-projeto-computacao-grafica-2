@@ -24,7 +24,7 @@ public:
   GLint JanelaColorLocation{};
 
   glm::vec4 lightColor{0.0f, 1.0f, 0.0f, 0.0f};
-  glm::vec4 lightPos{0.0f, 1.0f, 0.0f, 0.0f};
+  glm::vec4 lightPosWorldSpace{0.0f, 1.0f, 0.0f, 0.0f};
   glm::vec4 Ia{1.0f};
   glm::vec4 Ka{0.2f, 0.2f, 0.2f, 1.0f};
   glm::vec4 Id{1.0f};
@@ -40,7 +40,7 @@ public:
   void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model, glm::vec3 buildingPosition, float buildingWidth,
                          float buildingDepth, int floor, float windowWidth,
                          float windowDepth, float windowOffsetX,
-                         float windowOffsetZ, bool janelas_acesas);
+                         float windowOffsetZ);
   void update(glm::vec4 lightColorParam, glm::vec3 LightPosParam);
   void destroy();
 };

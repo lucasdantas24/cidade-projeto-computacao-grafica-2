@@ -3,8 +3,7 @@
 
 void Janela::create(Model m_model, const std::string assetsPath) {
 
-  JanelaProgram =
-      abcg::createOpenGLProgram({{.source = assetsPath + "predio.vert",
+  JanelaProgram = abcg::createOpenGLProgram({{.source = assetsPath + "predio.vert",
                                   .stage = abcg::ShaderStage::Vertex},
                                  {.source = assetsPath + "predio.frag",
                                   .stage = abcg::ShaderStage::Fragment}});
@@ -29,7 +28,7 @@ void Janela::create(Model m_model, const std::string assetsPath) {
 
 void Janela::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
   // Acertamos a luz especular, "brilho", com a cor da luz incidente
-  lightPos = glm::vec4(LightPosParam, 0);
+  lightPosWorldSpace = glm::vec4(LightPosParam, 0);
   Is = lightColorParam;
   shininess = 2 * abs(LightPosParam.x);
 }
@@ -37,8 +36,7 @@ void Janela::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
 void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
                    glm::vec3 buildingPosition, float buildingWidth,
                    float buildingDepth, int floor, float windowWidth,
-                   float windowDepth, float windowOffsetX, float windowOffsetZ,
-                   bool janelas_acesas) {
+                   float windowDepth, float windowOffsetX, float windowOffsetZ) {
 
   abcg::glUseProgram(JanelaProgram);
 
@@ -52,7 +50,7 @@ void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
   auto const normalMatrixLoc{
       abcg::glGetUniformLocation(JanelaProgram, "normalMatrix")};
 
-  auto const lightLoc{abcg::glGetUniformLocation(JanelaProgram, "lightPos")};
+  auto const lightLoc{abcg::glGetUniformLocation(JanelaProgram, "lightPosWorldSpace")};
 
   // Localização das propriedades de iluminação do sol
   auto const shininessLoc{
@@ -69,7 +67,7 @@ void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
   abcg::glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE, &projMatrix[0][0]);
 
   // Propriedades da luz
-  abcg::glUniform4fv(lightLoc, 1, &lightPos.x);
+  abcg::glUniform4fv(lightLoc, 1, &lightPosWorldSpace.x);
   abcg::glUniform4fv(IaLoc, 1, &Ia.x);
   abcg::glUniform4fv(IdLoc, 1, &Id.x);
   abcg::glUniform4fv(IsLoc, 1, &Is.x);
@@ -99,17 +97,9 @@ void Janela::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
   modelMatrix =
       glm::scale(modelMatrix, glm::vec3(windowWidth, 0.5f, windowDepth));
 
-  glm::vec4 windowColor;
-
-  if (janelas_acesas) {
-    windowColor = glm::vec4(0.8f, 0.8f, 0.8f, 1.0f); // Example window color
-  } else {
-    windowColor = glm::vec4(0.0f, 0.0f, 0.0f,
-                            1.0f); // Black color when janelas_acesas is false
-  }
-
-  abcg::glUniform4f(JanelaColorLocation, windowColor[0], windowColor[1],
-                    windowColor[2], windowColor[3]);
+  auto modelViewMatrix{glm::mat3(viewMatrix * modelMatrix)};
+  auto normalMatrix{glm::inverseTranspose(modelViewMatrix)};
+  abcg::glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, &normalMatrix[0][0]);
 
   // Update model matrix for window
   abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &modelMatrix[0][0]);

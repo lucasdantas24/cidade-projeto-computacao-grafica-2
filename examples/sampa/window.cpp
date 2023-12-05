@@ -82,7 +82,7 @@ void Window::onCreate() {
   m_projMatrixLocation = abcg::glGetUniformLocation(m_program, "projMatrix");
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
-  num_building = 540;
+  num_building = 240;
   // create vector
   // VARIAVEIS DA JANELA
 
@@ -95,7 +95,7 @@ void Window::onCreate() {
   janelas_acesas = true;
 
   m_predio.lightColor = glm::vec4{0.13f, 0.5f, 0.44f, 0.0f};
-  m_predio.lightPos = glm::vec4{0.0f, -10.0f, 0.0f, 0.0f};
+  m_predio.lightPosWorldSpace = glm::vec4{0.0f, -10.0f, 0.0f, 0.0f};
   m_predio.Ia = glm::vec4{3.0f};
   m_predio.Ka = glm::vec4{0.2f, 0.2f, 0.2f, 1.0f};
   m_predio.Id = glm::vec4{0.5};
@@ -176,7 +176,7 @@ void Window::onPaint() {
 
   m_predio.paint(m_camera.getViewMatrix(), m_camera.getProjMatrix(), m_model,
                  m_seed, num_building, m_clearColor, cores_random, windowWidth,
-                 windowDepth, windowOffsetX, windowOffsetZ, janelas_acesas);
+                 windowDepth, windowOffsetX, windowOffsetZ);
 
   abcg::glUseProgram(0);
 }
@@ -206,7 +206,7 @@ void Window::onPaintUI() {
     {
       ImGui::SliderInt("Seed", &m_seed, 0, 100, "Seed: %d");
 
-      ImGui::SliderInt("Predio", &num_building, 0, 540,
+      ImGui::SliderInt("Predio", &num_building, 0, 240,
                        "Numero de predios: %d");
     }
     // Checkbox to toggle randomization
@@ -228,7 +228,30 @@ void Window::onPaintUI() {
       }
     }
 
-       ImGui::End();
+    ImGui::SameLine();
+
+    ImGui::End();
+  }
+
+  {
+    ImVec2 windowSize(250, 150);
+    float newWindowX = screenWidth - windowSize.x - 5;
+    // Define a posição Y
+    float newWindowY = 450;
+    // Configura a posição e o tamanho da janela
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(newWindowX, newWindowY),
+                            ImGuiCond_FirstUseEver);
+    ImGui::Begin("Janela");
+    ImGui::Text("Variaveis das janelas:");
+    {
+      ImGui::SliderFloat("Largura", &windowWidth, 0.1f, 2.0f);
+      ImGui::SliderFloat("Profundidade", &windowDepth, 0.1f, 2.0f);
+      ImGui::SliderFloat("OffsetX", &windowOffsetX, -2.0f, 2.0f);
+      ImGui::SliderFloat("OffsetZ", &windowOffsetZ, -2.0f, 2.0f);
+    }
+
+    ImGui::End();
   }
 
   {
@@ -268,10 +291,6 @@ void Window::onPaintUI() {
     ImGui::Text("X: %.2f, Y: %.2f, Z: %.2f", balloonPosition.x,
                 balloonPosition.y, balloonPosition.z);
 
-    ImGui::Text("Posição do Balão:");
-    ImGui::Text("X: %.2f, Y: %.2f, Z: %.2f", m_predio.lightPos.x,
-                m_predio.lightPos.y, m_predio.lightPos.z);
-
     ImGui::Text("Movimento Balão:");
 
     if (ImGui::RadioButton("Anti-horário", m_movimento == 1)) {
@@ -301,32 +320,20 @@ void Window::onPaintUI() {
 
     // Adicione sliders para ajustar os atributos de iluminação
     // Dentro do bloco de código para criar a nova janela no ImGui
-    ImGui::SliderFloat("Cor da Luz (R)", &m_predio.lightColor.x, 0.0f, 1.0f,
-                       "%.2f");
-    ImGui::SliderFloat("Cor da Luz (G)", &m_predio.lightColor.y, 0.0f, 1.0f,
-                       "%.2f");
-    ImGui::SliderFloat("Cor da Luz (B)", &m_predio.lightColor.z, 0.0f, 1.0f,
-                       "%.2f");
+    ImGui::SliderFloat("Cor da Luz (R)", &m_predio.lightColor.x, 0.0f, 1.0f, "%.2f");
+    ImGui::SliderFloat("Cor da Luz (G)", &m_predio.lightColor.y, 0.0f, 1.0f, "%.2f");
+    ImGui::SliderFloat("Cor da Luz (B)", &m_predio.lightColor.z, 0.0f, 1.0f, "%.2f");
 
-    ImGui::SliderFloat("Posição da Luz x", &m_predio.lightPos.x, -10.0f, 10.0f,
-                       "%.2f");
-    ImGui::SliderFloat("Posição da Luz y", &m_predio.lightPos.y, -20.0f, 0.0f,
-                       "%.2f");
-    ImGui::SliderFloat("Posição da Luz z", &m_predio.lightPos.z, -10.0f, 10.0f,
-                       "%.2f");
-    ImGui::SliderFloat("Intensidade Ambiente", &m_predio.Ia.x, 0.0f, 5.0f,
-                       "%.2f");
-    ImGui::SliderFloat4("Reflexão Ambiente", &m_predio.Ka.x, 0.0f, 1.0f,
-                        "%.2f");
-    ImGui::SliderFloat("Intensidade Difusa", &m_predio.Id.x, 0.0f, 5.0f,
-                       "%.2f");
-    ImGui::SliderFloat4("Reflexão Difusa", &m_predio.Kd.x, 0.0f, 1.0f, "%.2f");
-    ImGui::SliderFloat("Intensidade Especular", &m_predio.Is.x, 0.0f, 5.0f,
-                       "%.2f");
-    ImGui::SliderFloat4("Reflexão Especular", &m_predio.Ks.x, 0.0f, 1.0f,
-                        "%.2f");
-    ImGui::SliderFloat("Brilho Especular", &m_predio.shininess, 1.0f, 150.0f,
-                       "%.2f");
+    ImGui::SliderFloat("Posição da Luz x", &m_predio.lightPosWorldSpace.x, -10.0f, 10.0f,"%.2f");
+    ImGui::SliderFloat("Posição da Luz y", &m_predio.lightPosWorldSpace.y, -20.0f, 0.0f,"%.2f");
+    ImGui::SliderFloat("Posição da Luz z", &m_predio.lightPosWorldSpace.z, -10.0f, 10.0f,"%.2f");
+    ImGui::SliderFloat("Intensidade Ambiente", &m_predio.Ia.x, 0.0f, 5.0f, "%.2f");
+    ImGui::SliderFloat4("Reflexão Ambiente", &m_predio.Ka.x, 0.0f, 1.0f, "%.2f");
+    ImGui::SliderFloat("Intensidade Difusa", &m_predio.Id.x, 0.0f, 5.0f, "%.2f");
+    ImGui::SliderFloat("Reflexão Difusa", &m_predio.Kd.x, 0.0f, 1.0f, "%.2f");
+    ImGui::SliderFloat("Intensidade Especular", &m_predio.Is.x, 0.0f, 5.0f, "%.2f");
+    ImGui::SliderFloat("Reflexão Especular", &m_predio.Ks.x, 0.0f, 1.0f, "%.2f");
+    ImGui::SliderFloat("Brilho Especular", &m_predio.shininess, 1.0f, 150.0f, "%.2f");
 
     // Finalize a janela ImGui
     ImGui::End();
@@ -340,6 +347,7 @@ void Window::onResize(glm::ivec2 const &size) {
 
 void Window::onDestroy() {
   m_ground.destroy();
+  m_predio.destroy();
 
   abcg::glDeleteProgram(m_program);
   abcg::glDeleteBuffers(1, &m_EBO);

@@ -33,23 +33,23 @@ void Predio::create(Model m_model, const std::string assetsPath) {
                              &diffuseTexture);
 }
 
-void Predio::update(glm::vec4 lightColorParam, glm::vec3 LightPosParam) {
+void Predio::update(glm::vec4 lightColorParam, glm::vec3 lightPosWorldSpaceParam) {
   // Acertamos a luz especular, "brilho", com a cor da luz incidente
-  lightPos = glm::vec4(LightPosParam, 0);
+  lightPosWorldSpace = glm::vec4(lightPosWorldSpaceParam, 0);
   Is = lightColorParam;
-  shininess = 2 * abs(LightPosParam.x);
+  shininess = 2 * abs(lightPosWorldSpaceParam.x);
 }
 
 void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
                    int m_seed, int num_building,
                    std::array<float, 4> m_clearColor, bool cores_random,
                    float windowWidth, float windowDepth, float windowOffsetX,
-                   float windowOffsetZ, bool janelas_acesas) {
+                   float windowOffsetZ) {
 
   abcg::glUseProgram(PredioProgram);
 
   building_positions = generateRandomBuildingPositions(
-      num_building, m_seed, -15.0f, 15.0f, -15.0f, 15.0f);
+      num_building, m_seed, -10.0f, 10.0f, -10.0f, 10.0f);
 
   num_andares_por_predio = gerarAndaresPorPredio(num_building, m_seed);
   num_largura = gerarLarguraProfundidadeAleatorio(num_building, m_seed);
@@ -66,7 +66,7 @@ void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
   auto const normalMatrixLoc{
       abcg::glGetUniformLocation(PredioProgram, "normalMatrix")};
 
-  auto const lightLoc{abcg::glGetUniformLocation(PredioProgram, "lightPos")};
+  auto const lightLoc{abcg::glGetUniformLocation(PredioProgram, "lightPosWorldSpace")};
 
   // Localização das propriedades de iluminação do sol
   auto const shininessLoc{
@@ -83,7 +83,7 @@ void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
   abcg::glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE, &projMatrix[0][0]);
 
   // Propriedades da luz
-  abcg::glUniform4fv(lightLoc, 1, &lightPos.x);
+  abcg::glUniform4fv(lightLoc, 1, &lightPosWorldSpace.x);
   abcg::glUniform4fv(IaLoc, 1, &Ia.x);
   abcg::glUniform4fv(IdLoc, 1, &Id.x);
   abcg::glUniform4fv(IsLoc, 1, &Is.x);
@@ -126,7 +126,7 @@ void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
 
       m_janela.paint(viewMatrix, projMatrix, m_janela_model, posicao_predio,
                      num_largura.at(j), num_profundidade.at(j), i, windowWidth,
-                     windowDepth, windowOffsetX, windowOffsetZ, janelas_acesas);
+                     windowDepth, windowOffsetX, windowOffsetZ);
     }
   }
 }
@@ -136,6 +136,7 @@ void Predio::destroy() {
   abcg::glDeleteBuffers(1, &m_EBO);
   abcg::glDeleteBuffers(1, &m_VBO);
   abcg::glDeleteVertexArrays(1, &m_VAO);
+  m_janela.destroy();
 }
 
 std::vector<int> Predio::gerarAndaresPorPredio(int num_building, int seed) {

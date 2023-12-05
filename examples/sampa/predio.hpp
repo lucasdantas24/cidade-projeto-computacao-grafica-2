@@ -29,7 +29,7 @@ public:
   GLint PredioColorLocation{};
 
   glm::vec4 lightColor{}; // Luz branca
-  glm::vec4 lightPos{};   // Posição da luz
+  glm::vec4 lightPosWorldSpace{};   // Posição da luz
   glm::vec4 Ia{};                           // Intensidade da luz ambiente
   glm::vec4 Ka{}; // Coeficiente de reflexão ambiente
   glm::vec4 Id{};                   // Intensidade difusa
@@ -52,8 +52,8 @@ public:
   void paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
              int m_seed, int num_building, std::array<float, 4> m_clearColor,
              bool cores_random, float windowWidth, float windowDepth,
-             float windowOffsetX, float windowOffsetZ, bool janelas_acesas);
-  void update(glm::vec4 lightColorParam, glm::vec3 LightPosParam);
+             float windowOffsetX, float windowOffsetZ);
+  void update(glm::vec4 lightColorParam, glm::vec3 lightPosWorldSpaceParam);
   void destroy();
 
   float calcularValorY(int i);

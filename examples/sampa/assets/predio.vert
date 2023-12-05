@@ -9,7 +9,7 @@ uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 uniform mat3 normalMatrix;
 
-uniform vec4 lightPos;
+uniform vec4 lightPosWorldSpace; // Alterado de lightDirWorldSpace para lightPosWorldSpace
 
 out vec3 fragV;
 out vec3 fragL;
@@ -21,7 +21,10 @@ out vec3 fragNObj;
 void main() {
   vec3 P = (viewMatrix * modelMatrix * vec4(inPosition, 1.0)).xyz;
   vec3 N = normalMatrix * inNormal;
-  vec3 L = (viewMatrix * (lightPos - modelMatrix * vec4(inPosition, 1.0))).xyz;
+
+  // Calcula a direção da luz no espaço da visão
+  vec3 lightPosViewSpace = (viewMatrix * lightPosWorldSpace).xyz; // Transforma a posição da luz para o espaço da visão
+  vec3 L = lightPosViewSpace - P; // Direção da luz = posição da luz - posição do vértice
 
   fragL = L;
   fragV = -P;

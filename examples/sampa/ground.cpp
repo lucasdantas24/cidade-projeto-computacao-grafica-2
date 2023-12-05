@@ -36,7 +36,7 @@ void Ground::paint() {
 
   // Draw a grid of 2N+1 x 2N+1 tiles on the xz plane, centered around the
   // origin
-  auto const N{15};
+  auto const N{10};
   for (auto const z : iter::range(-N, N + 1)) {
     for (auto const x : iter::range(-N, N + 1)) {
       // Set model matrix as a translation matrix
