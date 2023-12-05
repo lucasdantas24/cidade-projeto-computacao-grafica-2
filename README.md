@@ -63,54 +63,6 @@ color = color1 * weight.x + color2 * weight.y + color3 * weight.z;
 ## Skybox adicionado
 Foi adicionado um Skybox com textura cubica, o cubo foi criado proceduralmente, e a textura foi adicionada, foi baseada no viewer6 desenvolvido em sala de aula. A seguir mostra os metodos utilizados no \`Window.cpp\. Adicionamos um cubo do tamanho proporcional a cidade, que tambem foi aumentada em relacao ao SAMPA CITY 1.0.
 
-```cpp
-std::array<glm::vec3, 36> const m_skyPositions{{
-                                                {-20, -20, +20},
-                                                {+20, -20, +20},
-                                                {+20, +20, +20},
-                                                {-20, -20, +20},
-                                                {+20, +20, +20},
-                                                {-20, +20, +20},
-                            
-                                                {+20, -20, -20},
-                                                {-20, -20, -20},
-                                                {-20, +20, -20},
-                                                {+20, -20, -20},
-                                                {-20, +20, -20},
-                                                {+20, +20, -20},
-                                       
-                                                {+20, -20, -20},
-                                                {+20, +20, -20},
-                                                {+20, +20, +20},
-                                                {+20, -20, -20},
-                                                {+20, +20, +20},
-                                                {+20, -20, +20},
-
-                                                {-20, -20, +20},
-                                                {-20, +20, +20},
-                                                {-20, +20, -20},
-                                                {-20, -20, +20},
-                                                {-20, +20, -20},
-                                                {-20, -20, -20},
-
-                                                {-20, +20, +20},
-                                                {+20, +20, +20},
-                                                {+20, +20, -20},
-                                                {-20, +20, +20},
-                                                {+20, +20, -20},
-                                                {-20, +20, -20},
-                                                
-                                                {-20, -20, -20},
-                                                {+20, -20, -20},
-                                                {+20, -20, +20},
-                                                {-20, -20, -20},
-                                                {+20, -20, +20},
-                                                {-20, -20, +20}}};
-void createSkybox();
-void renderSkybox();
-void destroySkybox() const;
-```
-
 
 #### Alterações na Classe \`Balloon\`
 Os métodos adicionados são relacionados ao movimento do carro, sendo \`dolly(float speed)\` utilizado para o movimento para frente e para trás, \`truck(float speed)\` utilizado para o movimento para direita e esquerda e \`tilt(float speed)\` para o movimento para cima e para baixo. Esses métodos foram adaptados da classe \`Camera\`
