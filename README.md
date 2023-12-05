@@ -64,42 +64,42 @@ color = color1 * weight.x + color2 * weight.y + color3 * weight.z;
 Foi adicionado um Skybox com textura cubica, o cubo foi criado proceduralmente, e a textura foi adicionada, foi baseada no viewer6 desenvolvido em sala de aula. A seguir mostra os metodos utilizados no \`Window.cpp\. Adicionamos um cubo do tamanho proporcional a cidade, que tambem foi aumentada em relacao ao SAMPA CITY 1.0.
 
 ```cpp
-std::array<glm::vec3, 36> const m_skyPositions{{// Front
+std::array<glm::vec3, 36> const m_skyPositions{{
                                                 {-20, -20, +20},
                                                 {+20, -20, +20},
                                                 {+20, +20, +20},
                                                 {-20, -20, +20},
                                                 {+20, +20, +20},
                                                 {-20, +20, +20},
-                                                // Back
+                            
                                                 {+20, -20, -20},
                                                 {-20, -20, -20},
                                                 {-20, +20, -20},
                                                 {+20, -20, -20},
                                                 {-20, +20, -20},
                                                 {+20, +20, -20},
-                                                // Right
+                                       
                                                 {+20, -20, -20},
                                                 {+20, +20, -20},
                                                 {+20, +20, +20},
                                                 {+20, -20, -20},
                                                 {+20, +20, +20},
                                                 {+20, -20, +20},
-                                                // Left
+
                                                 {-20, -20, +20},
                                                 {-20, +20, +20},
                                                 {-20, +20, -20},
                                                 {-20, -20, +20},
                                                 {-20, +20, -20},
                                                 {-20, -20, -20},
-                                                // Top
+
                                                 {-20, +20, +20},
                                                 {+20, +20, +20},
                                                 {+20, +20, -20},
                                                 {-20, +20, +20},
                                                 {+20, +20, -20},
                                                 {-20, +20, -20},
-                                                // Bottom
+                                                
                                                 {-20, -20, -20},
                                                 {+20, -20, -20},
                                                 {+20, -20, +20},
