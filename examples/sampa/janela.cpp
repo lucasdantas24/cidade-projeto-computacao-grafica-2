@@ -2,6 +2,7 @@
 #include <glm/fwd.hpp>
 
 void Janela::create(Model m_model, const std::string assetsPath) {
+  // Cria um modelo com o shader do prédio
 
   JanelaProgram = abcg::createOpenGLProgram({{.source = assetsPath + "predio.vert",
                                   .stage = abcg::ShaderStage::Vertex},

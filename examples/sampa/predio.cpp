@@ -5,8 +5,10 @@
 #include <random>
 #include <unordered_map>
 
+// Internalizamos as transformações do Window para a classe Predio
 void Predio::create(Model m_model, const std::string assetsPath) {
 
+  // Cria o modelo da janela
   m_janela.create(m_janela_model, assetsPath);
 
   PredioProgram =
@@ -34,7 +36,7 @@ void Predio::create(Model m_model, const std::string assetsPath) {
 }
 
 void Predio::update(glm::vec4 lightColorParam, glm::vec3 lightPosWorldSpaceParam) {
-  // Acertamos a luz especular, "brilho", com a cor da luz incidente
+  // Atualizamos a posição e brilho da luz
   lightPosWorldSpace = glm::vec4(lightPosWorldSpaceParam, 0);
   Is = lightColorParam;
   shininess = 2 * abs(lightPosWorldSpaceParam.x);
@@ -48,6 +50,7 @@ void Predio::paint(glm::mat4 viewMatrix, glm::mat4 projMatrix, Model m_model,
 
   abcg::glUseProgram(PredioProgram);
 
+  // Gerando posições e outras informações do código
   building_positions = generateRandomBuildingPositions(
       num_building, m_seed, -10.0f, 10.0f, -10.0f, 10.0f);
 
