@@ -93,6 +93,17 @@ void Window::onCreate() {
   // COR RANDOM
   cores_random = false;
   janelas_acesas = true;
+
+  m_predio.lightColor = glm::vec4{0.13f, 0.5f, 0.44f, 0.0f};
+  m_predio.lightPos = glm::vec4{0.0f, -10.0f, 0.0f, 0.0f};
+  m_predio.Ia = glm::vec4{3.0f};
+  m_predio.Ka = glm::vec4{0.2f, 0.2f, 0.2f, 1.0f};
+  m_predio.Id = glm::vec4{0.5};
+  m_predio.Kd = glm::vec4{1.0f};
+  m_predio.Is = glm::vec4{1.5f};
+  m_predio.Ks = glm::vec4{1.0f};
+  m_predio.shininess = 100.0f;
+
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
   abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
@@ -309,6 +320,10 @@ void Window::onPaintUI() {
     ImGui::Text("X: %.2f, Y: %.2f, Z: %.2f", balloonPosition.x,
                 balloonPosition.y, balloonPosition.z);
 
+    ImGui::Text("Posição do Balão:");
+    ImGui::Text("X: %.2f, Y: %.2f, Z: %.2f", m_predio.lightPos.x,
+                m_predio.lightPos.y, m_predio.lightPos.z);
+
     ImGui::Text("Movimento Balão:");
 
     if (ImGui::RadioButton("Anti-horário", m_movimento == 1)) {
@@ -343,7 +358,7 @@ void Window::onPaintUI() {
     ImGui::SliderFloat("Cor da Luz (B)", &m_predio.lightColor.z, 0.0f, 1.0f, "%.2f");
 
     ImGui::SliderFloat("Posição da Luz x", &m_predio.lightPos.x, -10.0f, 10.0f,"%.2f");
-    ImGui::SliderFloat("Posição da Luz y", &m_predio.lightPos.y, 8.0f, 20.0f,"%.2f");
+    ImGui::SliderFloat("Posição da Luz y", &m_predio.lightPos.y, -20.0f, 0.0f,"%.2f");
     ImGui::SliderFloat("Posição da Luz z", &m_predio.lightPos.z, -10.0f, 10.0f,"%.2f");
     ImGui::SliderFloat("Intensidade Ambiente", &m_predio.Ia.x, 0.0f, 5.0f, "%.2f");
     ImGui::SliderFloat4("Reflexão Ambiente", &m_predio.Ka.x, 0.0f, 1.0f, "%.2f");
@@ -351,7 +366,7 @@ void Window::onPaintUI() {
     ImGui::SliderFloat4("Reflexão Difusa", &m_predio.Kd.x, 0.0f, 1.0f, "%.2f");
     ImGui::SliderFloat("Intensidade Especular", &m_predio.Is.x, 0.0f, 5.0f, "%.2f");
     ImGui::SliderFloat4("Reflexão Especular", &m_predio.Ks.x, 0.0f, 1.0f, "%.2f");
-    ImGui::SliderFloat("Brilho Especular", &m_predio.shininess, 1.0f, 100.0f, "%.2f");
+    ImGui::SliderFloat("Brilho Especular", &m_predio.shininess, 1.0f, 150.0f, "%.2f");
 
     // Finalize a janela ImGui
     ImGui::End();
